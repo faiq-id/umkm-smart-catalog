@@ -136,8 +136,6 @@ class _VariantSheetState extends State<VariantSheet> {
                 ),
                 const SizedBox(height: 4),
                 Text(p.desc,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: Txt.sans(13, color: pal.onSurfaceVariant, height: 1.45)),
                 const SizedBox(height: 6),
                 Row(children: [

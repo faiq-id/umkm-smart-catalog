@@ -135,16 +135,16 @@ class LocationSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     Tag('Atelier Experience', bg: pal.surfaceContainer, fg: pal.secondary),
-                    const SizedBox(width: 8),
                     Text('|', style: TextStyle(color: pal.outlineVariant)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text('Kunjungan Dine-in & Sistem Meja Pintar',
-                          overflow: TextOverflow.ellipsis,
-                          style: Txt.sans(13, color: pal.onSurfaceVariant)),
+                    Text(
+                      mobile ? 'Kunjungan Gerai & Dine-in' : 'Kunjungan Langsung & Layanan Gerai',
+                      style: Txt.sans(13, color: pal.onSurfaceVariant),
                     ),
                   ],
                 ),

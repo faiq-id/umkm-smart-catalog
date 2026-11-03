@@ -794,7 +794,8 @@ class _HeroSection extends StatelessWidget {
       children: [
         // Live Operational Status Badge
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          padding: EdgeInsets.symmetric(
+              horizontal: Bp.mobile(context) ? 10 : 14, vertical: 6),
           decoration: BoxDecoration(
             color: _ProfileColors.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(999),
@@ -810,20 +811,22 @@ class _HeroSection extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 8,
-                height: 8,
+                width: 7,
+                height: 7,
                 decoration: const BoxDecoration(
                   color: _ProfileColors.secondaryContainer,
                   shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 7),
               Text(
-                'BUKA SETIAP SELASA – MINGGU • 07.00 – 21.30 WIB',
+                Bp.mobile(context)
+                    ? 'SELASA – MINGGU • 07.00 – 21.30 WIB'
+                    : 'BUKA SETIAP SELASA – MINGGU • 07.00 – 21.30 WIB',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
+                  fontSize: Bp.mobile(context) ? 10 : 11,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.6,
+                  letterSpacing: Bp.mobile(context) ? 0.3 : 0.6,
                   color: _ProfileColors.onSurface,
                 ),
               ),
@@ -919,13 +922,29 @@ class _HeroSection extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildStat('36 Jam', 'Fermentasi Dingin'),
-              Container(width: 1, height: 32, color: _ProfileColors.outlineVariant.withValues(alpha: 0.5)),
-              _buildStat('100%', 'Mentega AOP Charentes'),
-              Container(width: 1, height: 32, color: _ProfileColors.outlineVariant.withValues(alpha: 0.5)),
-              _buildStat('88+', 'SCA Specialty Score'),
+              Expanded(
+                child: _buildStat('36 Jam', 'Fermentasi Dingin', context),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                width: 1,
+                height: 36,
+                color: _ProfileColors.outlineVariant.withValues(alpha: 0.5),
+              ),
+              Expanded(
+                child: _buildStat('100%', 'Mentega AOP Murni', context),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                width: 1,
+                height: 36,
+                color: _ProfileColors.outlineVariant.withValues(alpha: 0.5),
+              ),
+              Expanded(
+                child: _buildStat('88+', 'Specialty Score', context),
+              ),
             ],
           ),
         ),
@@ -933,14 +952,15 @@ class _HeroSection extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(String value, String label) {
+  Widget _buildStat(String value, String label, BuildContext context) {
+    final mobile = Bp.mobile(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           value,
           style: GoogleFonts.newsreader(
-            fontSize: 24,
+            fontSize: mobile ? 20 : 24,
             fontWeight: FontWeight.w500,
             color: _ProfileColors.primary,
           ),
@@ -949,7 +969,8 @@ class _HeroSection extends StatelessWidget {
         Text(
           label,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 12.5,
+            fontSize: mobile ? 11 : 12.5,
+            height: 1.3,
             color: _ProfileColors.onSurfaceVariant,
           ),
         ),
