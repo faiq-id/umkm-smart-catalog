@@ -401,8 +401,11 @@ class _DeliveryPickupCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   Container(
                     padding:
@@ -419,6 +422,7 @@ class _DeliveryPickupCard extends StatelessWidget {
                             spacing: 0.8)),
                   ),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         width: 7,
@@ -427,7 +431,7 @@ class _DeliveryPickupCard extends StatelessWidget {
                             color: Color(0xFF34D399), shape: BoxShape.circle),
                       ),
                       const SizedBox(width: 6),
-                      Text('Kurir Instan Ready',
+                      Text('Tersedia Setiap Hari',
                           style: Txt.sans(11,
                               weight: FontWeight.w700,
                               color: const Color(0xFF34D399))),
@@ -453,26 +457,48 @@ class _DeliveryPickupCard extends StatelessWidget {
           const SizedBox(height: 22),
           Divider(color: Colors.white.withValues(alpha: 0.12)),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: Text('Butuh pesanan jumlah besar / acara?',
-                    style: Txt.sans(12, color: pal.darkCardText)),
-              ),
-              PillButton(
-                label: store.reserveLabel,
-                icon: Icons.card_giftcard_rounded,
-                bg: Colors.white,
-                hoverBg: pal.surfaceContainer,
-                fg: pal.primary,
-                fontSize: 12.5,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shadow: true,
-                onTap: onBulkOrder,
-              ),
-            ],
-          ),
+          mobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Butuh pesanan jumlah besar / acara?',
+                        style: Txt.sans(12.5, color: pal.darkCardText)),
+                    const SizedBox(height: 10),
+                    PillButton(
+                      label: store.reserveLabel,
+                      icon: Icons.card_giftcard_rounded,
+                      bg: Colors.white,
+                      hoverBg: pal.surfaceContainer,
+                      fg: pal.primary,
+                      fontSize: 12.5,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      shadow: true,
+                      onTap: onBulkOrder,
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: Text('Butuh pesanan jumlah besar / acara?',
+                          style: Txt.sans(12, color: pal.darkCardText)),
+                    ),
+                    const SizedBox(width: 12),
+                    PillButton(
+                      label: store.reserveLabel,
+                      icon: Icons.card_giftcard_rounded,
+                      bg: Colors.white,
+                      hoverBg: pal.surfaceContainer,
+                      fg: pal.primary,
+                      fontSize: 12.5,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      shadow: true,
+                      onTap: onBulkOrder,
+                    ),
+                  ],
+                ),
         ],
       ),
     );
@@ -615,7 +641,7 @@ class _DeliverySimulationBoxState extends State<_DeliverySimulationBox> {
                                   .withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.bolt_rounded,
+                            child: const Icon(Icons.local_shipping_outlined,
                                 size: 16, color: Color(0xFF34D399)),
                           ),
                           const SizedBox(width: 10),
@@ -623,11 +649,11 @@ class _DeliverySimulationBoxState extends State<_DeliverySimulationBox> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Estimasi Pengantaran: 30–45 Menit',
+                                Text('Tersedia pilihan pesan antar',
                                     style: Txt.sans(12.5,
                                         weight: FontWeight.w700,
                                         color: Colors.white)),
-                                Text('GoSend / GrabExpress / Paxel Sameday',
+                                Text('Ongkos kirim & jadwal dikonfirmasi via WhatsApp',
                                     style: Txt.sans(11.5,
                                         color: pal.darkCardText)),
                               ],
@@ -637,7 +663,7 @@ class _DeliverySimulationBoxState extends State<_DeliverySimulationBox> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        '📍 Radius jangkauan pengiriman hingga 15 km dari gerai. Kemasan diikat kabel ties / seal khusus agar makanan tetap higienis & aman.',
+                        '📍 Pesanan diantar sesuai jangkauan area gerai. Detail alamat, ongkos kirim, dan estimasi waktu akan dikonfirmasi oleh tim gerai setelah pesanan Anda masuk.',
                         style: Txt.sans(12,
                             color: Colors.white70, height: 1.45),
                       ),
@@ -656,7 +682,7 @@ class _DeliverySimulationBoxState extends State<_DeliverySimulationBox> {
                                   .withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.timer_outlined,
+                            child: const Icon(Icons.storefront_outlined,
                                 size: 16, color: Color(0xFF60A5FA)),
                           ),
                           const SizedBox(width: 10),
@@ -664,12 +690,12 @@ class _DeliverySimulationBoxState extends State<_DeliverySimulationBox> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Siap Diambil dalam: 15–20 Menit',
+                                Text('Tersedia pilihan ambil di gerai',
                                     style: Txt.sans(12.5,
                                         weight: FontWeight.w700,
                                         color: Colors.white)),
                                 Text(
-                                    'Langsung ke Counter Kasir (Bebas Antrean)',
+                                    'Tunjukkan pesanan Anda di kasir saat tiba',
                                     style: Txt.sans(11.5,
                                         color: pal.darkCardText)),
                               ],
@@ -679,7 +705,7 @@ class _DeliverySimulationBoxState extends State<_DeliverySimulationBox> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        '🛍️ Pesan dulu dari rumah atau kantor, pesanan akan langsung disiapkan hangat oleh tim gerai begitu Anda tiba.',
+                        '🛍️ Pesan dulu dari rumah atau kantor via WhatsApp, lalu ambil pesanan di gerai sesuai waktu yang dikonfirmasi oleh tim kami.',
                         style: Txt.sans(12,
                             color: Colors.white70, height: 1.45),
                       ),

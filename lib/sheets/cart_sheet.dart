@@ -229,8 +229,8 @@ class _CartSheetState extends State<CartSheet> {
               Expanded(
                 child: Text(
                   isDelivery
-                      ? 'Diantar via GoSend / GrabExpress (Radius 15 km)'
-                      : 'Ambil di gerai: ${store.shortAddress} (15–20 mnt)',
+                      ? 'Pesan antar — ongkos kirim & jadwal dikonfirmasi via WhatsApp'
+                      : 'Ambil di gerai: ${store.shortAddress}',
                   style: Txt.sans(12,
                       weight: FontWeight.w600,
                       color: isDelivery

@@ -251,7 +251,7 @@ StoreProfile buildBakery() => StoreProfile(
       parkingLabel: 'Parkir Tersedia',
       qrTitle: 'Pesan Antar (Delivery) & Ambil di Gerai',
       qrDesc:
-          'Nikmati aneka viennoiserie hangat dan roti sourdough Prancis langsung di rumah atau kantor Anda. Pilihan pengiriman instan (GoSend / GrabExpress) dan take away cepat tanpa antre.',
+          'Nikmati aneka viennoiserie hangat dan roti sourdough Prancis di rumah atau kantor Anda. Tersedia pilihan pesan antar dan ambil di gerai, cukup pesan via WhatsApp.',
       qrUnitLabel: 'DELIVERY',
       reserveLabel: 'Pesan Custom Hampers / Acara',
       footerDesc:
@@ -496,7 +496,7 @@ StoreProfile buildCoffee() => StoreProfile(
       parkingLabel: 'Wi-Fi & Colokan',
       qrTitle: 'Kopi Segar Diantar ke Tempat Anda',
       qrDesc:
-          'Teman setia saat kerja atau santai. Pesan via WhatsApp untuk diantar kurir instan ke rumah/kantor, atau pesan lebih dulu lalu ambil langsung di bar tanpa perlu antre di kasir.',
+          'Teman setia saat kerja atau santai. Tersedia pilihan pesan antar ke rumah/kantor dan ambil di gerai, cukup pesan via WhatsApp.',
       qrUnitLabel: 'DELIVERY',
       reserveLabel: 'Pesan Kopi Botolan / Biji Kopi',
       footerDesc:
@@ -731,7 +731,7 @@ StoreProfile buildPet() => StoreProfile(
       parkingLabel: 'Parkir Luas',
       qrTitle: 'Pesan Antar Kebutuhan Anabul ke Rumah',
       qrDesc:
-          'Kebutuhan anabul seperti makanan karungan atau pasir tofu 6L yang berat kini langsung kami antar sampai depan pintu rumah Anda dengan kurir instan dan packing aman.',
+          'Kebutuhan anabul seperti makanan karungan atau pasir tofu 6L yang berat tersedia dengan pilihan pesan antar ke rumah dan ambil di gerai. Cukup pesan via WhatsApp.',
       qrUnitLabel: 'DELIVERY',
       reserveLabel: 'Konsultasi Layanan Grooming',
       footerDesc:

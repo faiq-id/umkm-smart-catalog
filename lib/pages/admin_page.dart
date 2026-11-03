@@ -255,10 +255,8 @@ class _AdminPageState extends State<AdminPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const PulseDot(color: Color(0xFF059669), size: 7),
-                      const SizedBox(width: 6),
                       Text(
-                        'Cloud Sync Aktif (Real-time)',
+                        'Mode Pratinjau Lokal',
                         style: Txt.sans(11.5,
                             weight: FontWeight.w600, color: pal.onSurfaceVariant),
                       ),
@@ -558,7 +556,7 @@ class _AdminPageState extends State<AdminPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Tujuan order instan keranjang belanja pelanggan',
+                    'Tujuan pesanan dari keranjang belanja pelanggan',
                     style: Txt.sans(12.5, color: pal.onSurfaceVariant),
                   ),
                   const SizedBox(height: 12),
@@ -1968,7 +1966,7 @@ class _AdminPageState extends State<AdminPage> {
                                       size: 16, color: pal.secondary),
                                   const SizedBox(width: 6),
                                   Text(
-                                    'INTEGRASI PESAN WHATSAPP',
+                                    'PESANAN VIA WHATSAPP',
                                     style: Txt.sans(11,
                                         weight: FontWeight.w800,
                                         color: pal.secondary,
@@ -1983,7 +1981,7 @@ class _AdminPageState extends State<AdminPage> {
                                   color: pal.surfaceLow,
                                   borderRadius: BorderRadius.circular(999),
                                 ),
-                                child: Text('Otomatis',
+                                child: Text('Siap Kirim',
                                     style: Txt.sans(10.5,
                                         weight: FontWeight.w700,
                                         color: pal.primary)),
@@ -2459,7 +2457,7 @@ class _AdminPageState extends State<AdminPage> {
                           weight: FontWeight.w600, color: pal.primary)),
                   const SizedBox(height: 2),
                   Text(
-                    'Pesan otomatis yang diterima ke nomor WhatsApp: ${store.whatsapp}',
+                    'Contoh pesan yang dikirim pelanggan ke nomor WhatsApp: ${store.whatsapp}',
                     style: Txt.sans(12, color: pal.onSurfaceVariant),
                   ),
                 ],
@@ -2515,7 +2513,7 @@ class _AdminPageState extends State<AdminPage> {
               ),
               const SizedBox(height: 12),
               Text(
-                '💡 Pengunjung web cukup memilih produk di etalase, lalu tombol "Pesan via WhatsApp" otomatis membuka aplikasi WhatsApp dengan format pesanan lengkap di atas tanpa kasir perlu input manual.',
+                '💡 Tombol "Pesan via WhatsApp" membuka aplikasi WhatsApp dengan format pesanan di atas yang sudah terisi. Pelanggan tinggal menekan kirim, sehingga kasir tidak perlu mencatat ulang. Pesanan belum masuk ke sistem secara otomatis.',
                 style: Txt.sans(12,
                     color: pal.onSurfaceVariant, height: 1.45),
               ),

@@ -21,22 +21,28 @@ A modern, editorial-grade **Flutter Web & Mobile** commerce platform designed fo
   - ☕ **Specialty Coffee**: *Micro-Roastery & Slow Bar*
   - 🐾 **Pet Care**: *Pet Hotel, Spa, & Gourmet Treats*
 - **Sistem Varian Ringkas**: Pemilihan suhu (Hot/Iced), ukuran cup, tingkat manis, dan varian layanan tanpa alur modal bertingkat yang rumit.
-- **Pencarian Cepat & Filter Kategori**: Navigasi real-time berdasarkan kategori dan kata kunci pencarian.
+- **Pencarian Cepat & Filter Kategori**: Filter berdasarkan kategori dan kata kunci pencarian.
 
-### 2. ⚡ Frictionless WhatsApp Direct Checkout
-- Pengunjung tidak perlu registrasi atau login akun yang rumit.
-- Sistem otomatis menghitung diskon promo harian, opsi pemesanan (*Pickup / Dine-in / Delivery*), dan merangkum pesanan secara rapi ke format pesan WhatsApp siap kirim.
+### 2. ⚡ Checkout via WhatsApp
+- Pengunjung tidak perlu registrasi atau login akun.
+- Keranjang menghitung diskon promo dan opsi pemesanan (*Pesan Antar / Ambil di Gerai*), lalu menyusun pesanan menjadi pesan WhatsApp yang sudah terisi. Pelanggan tinggal menekan kirim.
+- Tersedia pilihan pesan antar & ambil di gerai. Ongkos kirim dan jadwal dikonfirmasi oleh tim gerai lewat WhatsApp. Belum ada integrasi API kurir (GoSend/GrabExpress) maupun penerimaan pesanan otomatis.
 
 ### 3. 🏛️ Dedicated Editorial Company Profile
 - Desain tipografi elegan (*Newsreader Serif* & *Plus Jakarta Sans*).
 - Menampilkan filosofi merek, kurasi 4 pilar kualitas, galeri suasana atelier, dan ulasan kurator kuliner.
-- **Walk-In Welcome Section**: Panduan kunjungan tanpa reservasi yang ramah, dilengkapi info fasilitas (Wi-Fi kencang, stopkontak kerja, area parkir, jadwal keluar oven), rute navigasi Google Maps instan, serta integrasi concierge WhatsApp.
+- **Walk-In Welcome Section**: Panduan kunjungan tanpa reservasi, dilengkapi info fasilitas, tautan petunjuk arah Google Maps, serta tombol chat WhatsApp.
 
-### 4. 📊 Command Center Panel Admin
-- Pengaturan ketersediaan stok *live* (Tersedia / Habis Terjual) dalam satu klik.
-- Pengelolaan katalog produk lengkap (*Create, Read, Update, Delete*).
-- Ringkasan statistik performa real-time (Total Produk, Stok Aktif, Habis Terjual, dan Jumlah Pesanan Masuk).
+### 4. 📊 Panel Admin (Pratinjau)
+- Pengaturan ketersediaan stok (Tersedia / Habis Terjual) dalam satu klik.
+- Pengelolaan katalog produk (*Create, Read, Update, Delete*).
+- Ringkasan statistik (Total Produk, Stok Aktif, Habis Terjual, dan Jumlah Pesanan).
 - Tombol pratinjau cepat langsung ke etalase publik.
+- **Catatan:** data admin tersimpan di sesi browser saja dan belum memakai backend atau login. Penyimpanan permanen dan autentikasi perlu ditambahkan untuk penggunaan produksi.
+
+### 5. 🖼️ Catatan Aset Gambar
+- Foto produk dan banner pada proyek ini adalah **gambar ilustrasi/contoh** (sebagian dibuat dengan AI, sebagian dimuat dari URL eksternal) dan hanya untuk keperluan portofolio.
+- Untuk penggunaan komersial, ganti dengan foto milik klien atau foto berlisensi yang jelas haknya.
 
 ---
 
