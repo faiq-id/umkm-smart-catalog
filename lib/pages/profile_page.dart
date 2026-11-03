@@ -389,7 +389,7 @@ class _DemoProfileSwitchBar extends StatelessWidget {
                         const Text('🏛️', style: TextStyle(fontSize: 12)),
                         const SizedBox(width: 6),
                         Text(
-                          mobile ? 'Company Profile' : 'Web Company Profile Murni (Tanpa Admin & Cart)',
+                          mobile ? 'Company Profile' : 'Atelier Company Profile',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,

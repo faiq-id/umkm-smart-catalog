@@ -31,7 +31,7 @@ class UmkmDemoApp extends StatelessWidget {
             onSurface: pal.onSurface,
           );
           return MaterialApp(
-            title: '${state.store.name} — Demo Sistem UMKM',
+            title: '${state.store.name} — Artisanal Deli & Catalog',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               colorScheme: scheme,

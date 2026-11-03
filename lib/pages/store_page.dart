@@ -255,16 +255,6 @@ class DemoBar extends StatelessWidget {
       ),
     );
 
-    final badge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: pal.secondary,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(mobile ? '✨ DEMO UMKM' : '✨ PREVIEW DEMO SISTEM UMKM',
-          style: Txt.sans(10.5, weight: FontWeight.w800, color: Colors.white, spacing: 0.8)),
-    );
-
     final profileBtn = Hover(
       onTap: () => Navigator.of(context).pushNamed('/profile'),
       builder: (context, hovered) => AnimatedContainer(
@@ -301,29 +291,20 @@ class DemoBar extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
           child: mobile
-              ? Row(
-                  children: [
-                    badge,
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            switcher,
-                            const SizedBox(width: 8),
-                            profileBtn,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      switcher,
+                      const SizedBox(width: 8),
+                      profileBtn,
+                    ],
+                  ),
                 )
               : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    badge,
-                    const SizedBox(width: 14),
                     Flexible(
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -531,7 +512,7 @@ class _Header extends StatelessWidget {
                       Text(
                         isUltraCompactAdmin
                             ? 'Admin'
-                            : (isCompactAdmin ? 'Admin Demo' : 'Coba Admin Demo'),
+                            : (isCompactAdmin ? 'Admin' : 'Panel Admin'),
                         style: Txt.sans(
                           isUltraCompactAdmin ? 11 : 12,
                           weight: FontWeight.w700,
