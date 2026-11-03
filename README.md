@@ -58,7 +58,7 @@ A modern, editorial-grade **Flutter Web & Mobile** commerce platform designed fo
 
 1. **Clone repositori ini**:
    ```bash
-   git clone https://github.com/USERNAME-ANDA/umkm-smart-catalog.git
+   git clone https://github.com/faiq-id/umkm-smart-catalog.git
    cd umkm-smart-catalog
    ```
 
