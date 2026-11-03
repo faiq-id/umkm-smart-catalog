@@ -5,6 +5,9 @@
 [![State Management](https://img.shields.io/badge/State-Bloc-blueviolet)](https://bloclibrary.dev)
 [![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20iOS-brightgreen)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online%20Preview-success?logo=google-chrome&logoColor=white)](https://faiq-id.github.io/umkm-smart-catalog/)
+
+> 🌐 **Live Demo Website:** [https://faiq-id.github.io/umkm-smart-catalog/](https://faiq-id.github.io/umkm-smart-catalog/)
 
 A modern, editorial-grade **Flutter Web & Mobile** commerce platform designed for artisanal MSMEs (UMKM). Featuring multi-theme interactive catalogs, frictionless WhatsApp checkout, an editorial company profile showcase, and an integrated admin command center.
 
