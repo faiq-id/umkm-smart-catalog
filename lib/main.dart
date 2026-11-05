@@ -9,30 +9,47 @@ import 'config/firebase_options.dart';
 import 'pages/admin_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/store_page.dart';
+import 'services/auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   var firebaseReady = false;
+  String? firebaseInitError;
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );
+    ).timeout(const Duration(seconds: 8));
     firebaseReady = true;
   } catch (e) {
+    firebaseInitError =
+        'Koneksi ke server Firebase belum aktif ($e). Coba muat ulang halaman.';
     debugPrint('Firebase initialization skipped: $e');
   }
-  runApp(UmkmDemoApp(enableCloudSync: firebaseReady));
+  runApp(
+    UmkmDemoApp(
+      enableCloudSync: firebaseReady,
+      authService: AuthService(initError: firebaseInitError),
+    ),
+  );
 }
 
 class UmkmDemoApp extends StatelessWidget {
-  const UmkmDemoApp({super.key, this.enableCloudSync = true});
+  const UmkmDemoApp({
+    super.key,
+    this.enableCloudSync = true,
+    this.authService,
+  });
 
   final bool enableCloudSync;
+  final AuthService? authService;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => StoreBloc(enableCloudSync: enableCloudSync),
+      create: (_) => StoreBloc(
+        enableCloudSync: enableCloudSync,
+        authService: authService,
+      ),
       child: BlocBuilder<StoreBloc, StoreState>(
         builder: (context, state) {
           final pal = state.store.palette;

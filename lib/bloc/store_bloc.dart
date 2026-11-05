@@ -17,7 +17,7 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
     AuthService? authService,
     bool enableCloudSync = true,
   })  : _firestore = enableCloudSync ? (firestoreService ?? FirestoreService()) : null,
-        _auth = enableCloudSync ? (authService ?? AuthService()) : null,
+        _auth = authService ?? AuthService(),
         super(_initialState()) {
     on<StoreEvent>((event, emit) async {
       await event.when<FutureOr<void>>(
@@ -71,11 +71,13 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
   }
 
   final FirestoreService? _firestore;
-  final AuthService? _auth;
+  final AuthService _auth;
   StreamSubscription<RemoteStoreDoc>? _storeSub;
   StreamSubscription<List<Product>?>? _productsSub;
 
-  bool get _canWriteCloud => _firestore != null && (_auth?.isSignedIn ?? false);
+  AuthService get authService => _auth;
+
+  bool get _canWriteCloud => _firestore != null && _auth.isSignedIn;
 
   static Map<String, StoreProfile> _buildTemplateStores() {
     final sList = [buildBakery(), buildCoffee(), buildPet()];

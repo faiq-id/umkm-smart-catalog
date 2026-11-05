@@ -1,27 +1,74 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class AuthService {
-  AuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
+  AuthService({
+    FirebaseAuth? auth,
+    this.initError,
+  }) : _injectedAuth = auth;
 
-  final FirebaseAuth _auth;
+  final FirebaseAuth? _injectedAuth;
+  final String? initError;
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  bool get isFirebaseReady =>
+      _injectedAuth != null || Firebase.apps.isNotEmpty;
 
-  User? get currentUser => _auth.currentUser;
+  FirebaseAuth? get _safeAuth {
+    if (_injectedAuth != null) return _injectedAuth;
+    if (Firebase.apps.isEmpty) return null;
+    try {
+      return FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
 
-  bool get isSignedIn => _auth.currentUser != null;
+  Stream<User?> get authStateChanges {
+    final auth = _safeAuth;
+    if (auth == null) {
+      return Stream<User?>.value(null);
+    }
+    try {
+      return auth.authStateChanges();
+    } catch (_) {
+      return Stream<User?>.value(null);
+    }
+  }
+
+  User? get currentUser {
+    try {
+      return _safeAuth?.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool get isSignedIn => currentUser != null;
 
   Future<UserCredential> signIn({
     required String email,
     required String password,
   }) async {
-    return _auth.signInWithEmailAndPassword(
+    final auth = _safeAuth;
+    if (auth == null) {
+      throw FirebaseAuthException(
+        code: 'service-unavailable',
+        message: initError ??
+            'Layanan autentikasi belum siap. Periksa koneksi internet Anda lalu muat ulang halaman.',
+      );
+    }
+    return auth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
     );
   }
 
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    final auth = _safeAuth;
+    if (auth != null) {
+      await auth.signOut();
+    }
+  }
 
   static String friendlyError(Object error) {
     if (error is FirebaseAuthException) {
@@ -40,6 +87,9 @@ class AuthService {
           return 'Koneksi internet terputus. Periksa jaringan Anda lalu coba lagi.';
         case 'unauthorized-domain':
           return 'Domain web ini belum diizinkan di Firebase Authentication → Settings → Authorized domains.';
+        case 'service-unavailable':
+          return error.message ??
+              'Koneksi ke server Firebase gagal dimuat. Coba refresh halaman (Ctrl+Shift+R).';
         default:
           return 'Gagal masuk (${error.code}). Silakan periksa kembali akun Anda.';
       }
@@ -47,4 +97,3 @@ class AuthService {
     return 'Terjadi kesalahan saat mencoba masuk. Silakan coba lagi.';
   }
 }
-

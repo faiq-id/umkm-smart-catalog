@@ -33,17 +33,23 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
-  late final AuthService _authService = widget.authService ?? AuthService();
+  AuthService? _resolvedAuthService;
   bool _guestPreview = false;
   String? _seededForStoreKey;
 
+  AuthService _getAuthService(BuildContext context) {
+    return _resolvedAuthService ??=
+        widget.authService ?? context.read<StoreBloc>().authService;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authService = _getAuthService(context);
     return StreamBuilder<User?>(
-      stream: _authService.authStateChanges,
-      initialData: _authService.currentUser,
+      stream: authService.authStateChanges,
+      initialData: authService.currentUser,
       builder: (context, snapshot) {
-        final user = snapshot.data;
+        final user = snapshot.hasError ? null : snapshot.data;
         if (user != null) {
           final currentStoreId = context.read<StoreBloc>().state.currentStoreId;
           final seedKey = '${user.uid}:$currentStoreId';
@@ -61,7 +67,7 @@ class _AdminPageState extends State<AdminPage> {
             isGuestPreview: false,
             userEmail: user.email,
             onSignOut: () async {
-              await _authService.signOut();
+              await authService.signOut();
               if (context.mounted) {
                 showToast(context, 'Anda telah keluar dari Panel Admin',
                     icon: Icons.logout_rounded);
@@ -79,7 +85,7 @@ class _AdminPageState extends State<AdminPage> {
         }
 
         return AdminLoginPage(
-          authService: _authService,
+          authService: authService,
           onGuestPreview: AppConfig.canUseGuestPreview
               ? () => setState(() => _guestPreview = true)
               : null,
@@ -3079,24 +3085,31 @@ class _AdminSidebar extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      store.shortName,
-                      style: Txt.serif(20,
-                          weight: FontWeight.w600, color: pal.primary),
-                    ),
-                    Text(
-                      'ADMIN ${store.id == 'bakery' ? 'ATELIER' : (store.id == 'coffee' ? 'KEDAI' : 'GERAI')}',
-                      style: Txt.sans(10.5,
-                          weight: FontWeight.w700,
-                          color: pal.onSurfaceVariant,
-                          spacing: 1.4),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        store.shortName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Txt.serif(20,
+                            weight: FontWeight.w600, color: pal.primary),
+                      ),
+                      Text(
+                        'ADMIN ${store.id == 'bakery' ? 'ATELIER' : (store.id == 'coffee' ? 'KEDAI' : 'GERAI')}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Txt.sans(10.5,
+                            weight: FontWeight.w700,
+                            color: pal.onSurfaceVariant,
+                            spacing: 1.4),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -3578,13 +3591,18 @@ class _KpiCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: Txt.sans(11,
-                    weight: FontWeight.w700,
-                    color: pal.onSurfaceVariant,
-                    spacing: 0.8),
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Txt.sans(11,
+                      weight: FontWeight.w700,
+                      color: pal.onSurfaceVariant,
+                      spacing: 0.8),
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 width: 38,
                 height: 38,
@@ -3606,9 +3624,13 @@ class _KpiCard extends StatelessWidget {
                 style: Txt.serif(34, weight: FontWeight.w600, color: pal.primary),
               ),
               const SizedBox(width: 8),
-              Text(
-                unit,
-                style: Txt.sans(13, color: pal.onSurfaceVariant),
+              Flexible(
+                child: Text(
+                  unit,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Txt.sans(13, color: pal.onSurfaceVariant),
+                ),
               ),
             ],
           ),
@@ -3622,6 +3644,8 @@ class _KpiCard extends StatelessWidget {
               ),
               child: Text(
                 badge!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: Txt.sans(11, weight: FontWeight.w700, color: badgeFg),
               ),
             )
@@ -3632,10 +3656,14 @@ class _KpiCard extends StatelessWidget {
                   Icon(subIcon, size: 14, color: subColor),
                   const SizedBox(width: 4),
                 ],
-                Text(
-                  subtitle!,
-                  style: Txt.sans(11.5,
-                      weight: FontWeight.w700, color: subColor ?? pal.primary),
+                Flexible(
+                  child: Text(
+                    subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Txt.sans(11.5,
+                        weight: FontWeight.w700, color: subColor ?? pal.primary),
+                  ),
                 ),
               ],
             ),
