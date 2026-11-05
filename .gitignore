@@ -43,3 +43,32 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase & Kredensial Sensitif (Jangan dipublikasikan ke GitHub)
+lib/config/firebase_options.dart
+**/google-services.json
+**/GoogleService-Info.plist
+.firebaserc
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+*service-account*.json
+*firebase-adminsdk*.json
+credentials.json
+
+# Environment Variables & Kunci Signing
+.env
+.env.*
+*.env
+!*.env.example
+firebase_env.json
+*.jks
+*.keystore
+key.properties
+*.pem
+*.p12
+*.key
+
+# Dokumen Internal Bisnis
+assets/paket-website-iq-webdev.pdf
+
