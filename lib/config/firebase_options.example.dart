@@ -35,3 +35,4 @@ class DefaultFirebaseOptions {
     measurementId: 'GANTI_DENGAN_MEASUREMENT_ID',
   );
 }
+

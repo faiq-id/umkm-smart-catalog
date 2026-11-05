@@ -5,6 +5,8 @@
 /// 2. Ubah [isDemoShowcase] menjadi `false` dan sesuaikan [defaultStoreId].
 /// 3. Pastikan [allowGuestAdminPreview] bernilai `false` agar hanya pemilik
 ///    resmi yang bisa masuk ke Panel Admin.
+/// 4. Biarkan [enableOrdersAndReports] bernilai `false` untuk Paket Standar,
+///    atau ubah menjadi `true` jika klien mengambil add-on Pesanan & Laporan.
 class AppConfig {
   const AppConfig._();
 
@@ -20,7 +22,12 @@ class AppConfig {
   /// Otomatis nonaktif bila [isDemoShowcase] bernilai `false`.
   static const bool allowGuestAdminPreview = true;
 
+  /// Menampilkan tab "Pesanan" & "Laporan Penjualan" di Panel Admin.
+  /// - `false` (Default Paket Standar): disembunyikan agar fokus pada kelola
+  ///   katalog, stok cepat, status buka/tutup, dan banner promo nyata.
+  /// - `true` (Add-on / Paket Lengkap): menampilkan modul pesanan & laporan.
+  static const bool enableOrdersAndReports = false;
+
   static bool get canUseGuestPreview =>
       isDemoShowcase && allowGuestAdminPreview;
 }
-

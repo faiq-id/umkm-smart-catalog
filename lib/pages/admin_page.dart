@@ -333,13 +333,13 @@ class _AdminDashboardViewState extends State<_AdminDashboardView> {
     if (_section == AdminSection.stok) {
       return _buildStockBatchView(context, state, store, pal);
     }
-    if (_section == AdminSection.pesanan) {
+    if (AppConfig.enableOrdersAndReports && _section == AdminSection.pesanan) {
       return _buildOrdersView(context, state, pal);
     }
     if (_section == AdminSection.profil || _section == AdminSection.pengaturan) {
       return _buildStoreSettingsView(context, state, store, pal);
     }
-    if (_section == AdminSection.laporan) {
+    if (AppConfig.enableOrdersAndReports && _section == AdminSection.laporan) {
       return _buildReportsView(context, state, store, pal);
     }
 
@@ -452,7 +452,9 @@ class _AdminDashboardViewState extends State<_AdminDashboardView> {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 580),
               child: Text(
-                'Panel manajemen operasional cepat UMKM ${store.name}. Pantau stok produk live, pesanan WhatsApp pelanggan, dan etalase publik.',
+                AppConfig.enableOrdersAndReports
+                    ? 'Panel manajemen operasional cepat UMKM ${store.name}. Pantau stok produk live, pesanan WhatsApp pelanggan, dan etalase publik.'
+                    : 'Panel manajemen operasional cepat UMKM ${store.name}. Kelola katalog menu, stok produk live, status gerai, dan promo etalase publik.',
                 style: Txt.sans(14, color: pal.onSurfaceVariant, height: 1.5),
               ),
             ),
@@ -497,6 +499,11 @@ class _AdminDashboardViewState extends State<_AdminDashboardView> {
     final total = products.length;
     final available = products.where((p) => !p.soldOut).length;
     final soldOut = products.where((p) => p.soldOut).length;
+    final discounted = products
+        .where((p) => p.originalPrice != null && p.originalPrice! > p.price)
+        .length;
+    final categoryCount =
+        store.categories.where((cat) => cat.id != 'all').length;
     final orders = state.currentOrders;
     final totalRevenue = orders.fold<int>(0, (sum, o) => sum + o.total);
 
@@ -518,8 +525,8 @@ class _AdminDashboardViewState extends State<_AdminDashboardView> {
             iconFg: pal.primary,
             value: '$total',
             unit: 'Menu',
-            subtitle: '+3 varian baru minggu ini',
-            subIcon: Icons.trending_up_rounded,
+            subtitle: '$categoryCount kategori katalog',
+            subIcon: Icons.category_outlined,
             subColor: pal.secondary,
             pal: pal,
           ),
@@ -551,19 +558,42 @@ class _AdminDashboardViewState extends State<_AdminDashboardView> {
             badgeFg: const Color(0xFF78350F),
             pal: pal,
           ),
-          // Pesanan WhatsApp
-          _KpiCard(
-            width: w,
-            title: 'PESANAN WHATSAPP',
-            icon: Icons.chat_outlined,
-            iconBg: pal.surfaceContainer,
-            iconFg: pal.secondary,
-            value: '${orders.isNotEmpty ? orders.length : 38}',
-            unit: 'Transaksi',
-            subtitle: 'Omzet: ${rupiah(totalRevenue > 0 ? totalRevenue : 2840000)}',
-            subColor: pal.primary,
-            pal: pal,
-          ),
+          if (AppConfig.enableOrdersAndReports)
+            // Pesanan WhatsApp (Add-on / Paket Lengkap)
+            _KpiCard(
+              width: w,
+              title: 'PESANAN WHATSAPP',
+              icon: Icons.chat_outlined,
+              iconBg: pal.surfaceContainer,
+              iconFg: pal.secondary,
+              value: '${orders.isNotEmpty ? orders.length : 38}',
+              unit: 'Transaksi',
+              subtitle:
+                  'Omzet: ${rupiah(totalRevenue > 0 ? totalRevenue : 2840000)}',
+              subColor: pal.primary,
+              pal: pal,
+            )
+          else
+            // Promo & Diskon Aktif (Paket Standar — 100% Data Live)
+            _KpiCard(
+              width: w,
+              title: 'PROMO & DISKON',
+              icon: Icons.local_offer_outlined,
+              iconBg: pal.surfaceContainer,
+              iconFg: pal.secondary,
+              value: '$discounted',
+              unit: 'Menu Diskon',
+              badge: state.promoActive
+                  ? 'Banner Promo Aktif (${store.promo.percent}%)'
+                  : 'Banner Promo Nonaktif',
+              badgeBg: state.promoActive
+                  ? const Color(0xFFD1FAE5)
+                  : pal.surfaceContainer,
+              badgeFg: state.promoActive
+                  ? const Color(0xFF065F46)
+                  : pal.onSurfaceVariant,
+              pal: pal,
+            ),
         ],
       );
     });
@@ -3196,13 +3226,14 @@ class _AdminSidebar extends StatelessWidget {
                   onTap: () => onSelect(AdminSection.stok),
                   pal: pal,
                 ),
-                _SidebarItem(
-                  icon: Icons.receipt_long_outlined,
-                  label: 'Pesanan Deli',
-                  active: activeSection == AdminSection.pesanan,
-                  onTap: () => onSelect(AdminSection.pesanan),
-                  pal: pal,
-                ),
+                if (AppConfig.enableOrdersAndReports)
+                  _SidebarItem(
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Pesanan Deli',
+                    active: activeSection == AdminSection.pesanan,
+                    onTap: () => onSelect(AdminSection.pesanan),
+                    pal: pal,
+                  ),
                 Padding(
                   padding: const EdgeInsets.only(left: 12, top: 20, bottom: 6),
                   child: Text(
@@ -3220,13 +3251,14 @@ class _AdminSidebar extends StatelessWidget {
                   onTap: () => onSelect(AdminSection.profil),
                   pal: pal,
                 ),
-                _SidebarItem(
-                  icon: Icons.query_stats_outlined,
-                  label: 'Laporan Penjualan',
-                  active: activeSection == AdminSection.laporan,
-                  onTap: () => onSelect(AdminSection.laporan),
-                  pal: pal,
-                ),
+                if (AppConfig.enableOrdersAndReports)
+                  _SidebarItem(
+                    icon: Icons.query_stats_outlined,
+                    label: 'Laporan Penjualan',
+                    active: activeSection == AdminSection.laporan,
+                    onTap: () => onSelect(AdminSection.laporan),
+                    pal: pal,
+                  ),
                 _SidebarItem(
                   icon: Icons.settings_outlined,
                   label: 'Pengaturan Atelier',
