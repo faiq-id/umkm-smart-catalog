@@ -1,0 +1,313 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// This security rules file enforces the schema and access model for
+// the UMKM Storefront & Admin Catalog application (Standard Edition).
+//
+// Auth & Access Model:
+//   - Public customers browse storefront profiles and product catalogs
+//     without logging in (`allow get, list: if true`).
+//   - Public user sign-up (`createUser`) is disabled in Firebase Auth;
+//     only project-owner-provisioned Admin accounts exist. Therefore,
+//     any authenticated user (`request.auth != null`) is an authorized
+//     Store Admin (`isAdmin()`).
+//   - Neither `stores` nor `products` store personal user PII; only
+//     public-facing store metadata and catalog items are permitted.
+//   - All other collections and paths are denied by default.
+//
+// Collection: stores/{storeId}
+// Document ID: storeId (string, length 1..64, e.g. 'bakery', 'coffee', 'pet')
+// Fields:
+//   - name: string (required, length 1..120) - Public store display name
+//   - tagline: string (required, length 0..300) - Storefront subtitle/tagline
+//   - address: string (required, length 0..400) - Public store physical address
+//   - whatsapp: string (required, length 0..30) - Public business WhatsApp digits
+//   - instagram: string (required, length 0..100) - Public Instagram handle
+//   - banner: string (required, length 0..1000) - Hero banner URL or asset path
+//   - promoActive: bool (required) - Whether promotional banner/code is active
+//   - openOverride: bool | null (optional, nullable) - Manual open/closed override
+//   - promo: map (required, strict 9 keys) - Storefront promotion configuration:
+//       * badge: string (required, length 0..600)
+//       * eyebrow: string (required, length 0..600)
+//       * title: string (required, length 0..600)
+//       * desc: string (required, length 0..600)
+//       * cta: string (required, length 0..600)
+//       * code: string (required, length 0..600)
+//       * percent: int (required, 0..100)
+//       * maxDiscount: int (required, 0..1000000000)
+//       * endHour: int (required, 0..24)
+//   - updatedAt: timestamp (optional) - Last modification server/client timestamp
+//
+// Subcollection: stores/{storeId}/products/{productId}
+// Document ID: productId (string, length 1..100)
+// Fields:
+//   - id: string (required, immutable, must equal productId) - Product identifier
+//   - name: string (required, length 1..160) - Product title
+//   - desc: string (required, length 0..1000) - Product description
+//   - category: string (required, length 1..80) - Category slug
+//   - badge: string (required, length 0..80) - Highlight badge label
+//   - price: int (required, 0..1000000000) - Selling price in IDR
+//   - originalPrice: int | null (optional, nullable, 0..1000000000) - Strikethrough IDR price
+//   - image: string (required, length 0..1000) - Product image URL or asset path
+//   - rating: number (required, 0..5) - Average product rating (int or float)
+//   - reviews: int (required, 0..1000000000) - Review count
+//   - featureLabel: string (required, length 0..120) - Product highlight label
+//   - featureIconKey: string (required, length 0..80) - Serialized icon identifier
+//   - emoji: string (required, length 0..32) - Fallback/accent emoji
+//   - stock: int (required, 0..999999) - Available inventory count
+//   - soldToday: int (required, 0..1000000000) - Units sold counter
+//   - sortOrder: int (required, 0..999999) - Catalog display ordering index
+//   - variants: list (required, max 20 items) - Serialized VariantGroup list
+//   - updatedAt: timestamp (optional) - Last modification server/client timestamp
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the request is from an authenticated Firebase Auth user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // In this project, Firebase Auth public sign-up (`createUser`) is disabled;
+    // only project-owner-created Admin accounts exist in Firebase Auth.
+    function isAdmin() {
+      return isAuthenticated();
+    }
+
+    // Check if authenticated user matches a specific UID
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Verify UID field hasn't been tampered with on create
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == request.auth.uid;
+    }
+
+    // Ensure UID field is not modified on update
+    function uidNotModified() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == resource.data.uid;
+    }
+
+    // Validate all required fields exist on a map/document
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    // Validate a map/document contains only explicitly permitted keys
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    // Validate string type and character length bounds
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    // Validate integer type and inclusive numeric range
+    function isValidIntRange(val, minVal, maxVal) {
+      return val is int && val >= minVal && val <= maxVal;
+    }
+
+    // Validate list type and maximum element count
+    function isValidList(items, maxSize) {
+      return items is list && items.size() <= maxSize;
+    }
+
+    // Validate that immutable fields have not changed during an update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators (Enforced on BOTH create and update)
+    // ===============================================================
+
+    function isValidStoreId(storeId) {
+      return isValidString(storeId, 1, 64);
+    }
+
+    function isValidProductId(productId) {
+      return isValidString(productId, 1, 100);
+    }
+
+    function isValidPromo(promo) {
+      let promoKeys = [
+        'badge',
+        'eyebrow',
+        'title',
+        'desc',
+        'cta',
+        'percent',
+        'maxDiscount',
+        'endHour',
+        'code'
+      ];
+      return promo is map &&
+        hasRequiredFields(promo, promoKeys) &&
+        hasOnlyAllowedFields(promo, promoKeys) &&
+        isValidString(promo.badge, 0, 600) &&
+        isValidString(promo.eyebrow, 0, 600) &&
+        isValidString(promo.title, 0, 600) &&
+        isValidString(promo.desc, 0, 600) &&
+        isValidString(promo.cta, 0, 600) &&
+        isValidString(promo.code, 0, 600) &&
+        isValidIntRange(promo.percent, 0, 100) &&
+        isValidIntRange(promo.maxDiscount, 0, 1000000000) &&
+        isValidIntRange(promo.endHour, 0, 24);
+    }
+
+    function isValidStore(data) {
+      let requiredFields = [
+        'name',
+        'tagline',
+        'address',
+        'whatsapp',
+        'instagram',
+        'banner',
+        'promoActive',
+        'promo'
+      ];
+      let allowedFields = [
+        'name',
+        'tagline',
+        'address',
+        'whatsapp',
+        'instagram',
+        'banner',
+        'promoActive',
+        'openOverride',
+        'promo',
+        'updatedAt'
+      ];
+      return hasRequiredFields(data, requiredFields) &&
+        hasOnlyAllowedFields(data, allowedFields) &&
+        isValidString(data.name, 1, 120) &&
+        isValidString(data.tagline, 0, 300) &&
+        isValidString(data.address, 0, 400) &&
+        isValidString(data.whatsapp, 0, 30) &&
+        isValidString(data.instagram, 0, 100) &&
+        isValidString(data.banner, 0, 1000) &&
+        data.promoActive is bool &&
+        (!('openOverride' in data) || data.openOverride == null || data.openOverride is bool) &&
+        isValidPromo(data.promo) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidProduct(data, productId) {
+      let requiredFields = [
+        'id',
+        'name',
+        'desc',
+        'category',
+        'badge',
+        'price',
+        'image',
+        'rating',
+        'reviews',
+        'featureLabel',
+        'featureIconKey',
+        'emoji',
+        'stock',
+        'soldToday',
+        'sortOrder',
+        'variants'
+      ];
+      let allowedFields = [
+        'id',
+        'name',
+        'desc',
+        'category',
+        'badge',
+        'price',
+        'originalPrice',
+        'image',
+        'rating',
+        'reviews',
+        'featureLabel',
+        'featureIconKey',
+        'emoji',
+        'stock',
+        'soldToday',
+        'sortOrder',
+        'variants',
+        'updatedAt'
+      ];
+      return hasRequiredFields(data, requiredFields) &&
+        hasOnlyAllowedFields(data, allowedFields) &&
+        data.id is string && data.id == productId &&
+        isValidString(data.name, 1, 160) &&
+        isValidString(data.desc, 0, 1000) &&
+        isValidString(data.category, 1, 80) &&
+        isValidString(data.badge, 0, 80) &&
+        isValidIntRange(data.price, 0, 1000000000) &&
+        (!('originalPrice' in data) ||
+          data.originalPrice == null ||
+          isValidIntRange(data.originalPrice, 0, 1000000000)) &&
+        isValidString(data.image, 0, 1000) &&
+        data.rating is number && data.rating >= 0 && data.rating <= 5 &&
+        isValidIntRange(data.reviews, 0, 1000000000) &&
+        isValidString(data.featureLabel, 0, 120) &&
+        isValidString(data.featureIconKey, 0, 80) &&
+        isValidString(data.emoji, 0, 32) &&
+        isValidIntRange(data.stock, 0, 999999) &&
+        isValidIntRange(data.soldToday, 0, 1000000000) &&
+        isValidIntRange(data.sortOrder, 0, 999999) &&
+        isValidList(data.variants, 20) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Public storefront metadata & admin store configuration
+    match /stores/{storeId} {
+      allow get, list: if true;
+
+      allow create: if isAdmin() &&
+        isValidStoreId(storeId) &&
+        isValidStore(request.resource.data);
+
+      allow update: if isAdmin() &&
+        isValidStoreId(storeId) &&
+        isValidStore(request.resource.data);
+
+      allow delete: if isAdmin();
+
+      // Public product catalog & admin inventory/menu management
+      match /products/{productId} {
+        allow get, list: if true;
+
+        allow create: if isAdmin() &&
+          isValidStoreId(storeId) &&
+          isValidProductId(productId) &&
+          isValidProduct(request.resource.data, productId);
+
+        allow update: if isAdmin() &&
+          isValidStoreId(storeId) &&
+          isValidProductId(productId) &&
+          areImmutableFieldsUnchanged(['id']) &&
+          isValidProduct(request.resource.data, productId);
+
+        allow delete: if isAdmin();
+      }
+    }
+
+    // Default deny for all other collections and paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

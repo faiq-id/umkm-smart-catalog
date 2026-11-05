@@ -55,7 +55,7 @@ extension StoreEventPatterns on StoreEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SwitchTheme value)?  switchTheme,TResult Function( _SearchChanged value)?  searchChanged,TResult Function( _CategoryChanged value)?  categoryChanged,TResult Function( _FilterAvailableOnlyToggled value)?  filterAvailableOnlyToggled,TResult Function( _AddToCart value)?  addToCart,TResult Function( _UpdateCartQty value)?  updateCartQty,TResult Function( _RemoveFromCart value)?  removeFromCart,TResult Function( _ClaimPromo value)?  claimPromo,TResult Function( _SetTableNumber value)?  setTableNumber,TResult Function( _SetOrderType value)?  setOrderType,TResult Function( _PlaceOrder value)?  placeOrder,TResult Function( _AdminUpdateStock value)?  adminUpdateStock,TResult Function( _AdminUpdateProduct value)?  adminUpdateProduct,TResult Function( _AdminUpdateOrderStatus value)?  adminUpdateOrderStatus,TResult Function( _AdminToggleOpen value)?  adminToggleOpen,TResult Function( _AdminTogglePromo value)?  adminTogglePromo,TResult Function( _AdminUpdateStoreInfo value)?  adminUpdateStoreInfo,TResult Function( _AdminAddProduct value)?  adminAddProduct,TResult Function( _AdminSaveProduct value)?  adminSaveProduct,TResult Function( _AdminDeleteProduct value)?  adminDeleteProduct,TResult Function( _AdminUpdatePromoBanner value)?  adminUpdatePromoBanner,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SwitchTheme value)?  switchTheme,TResult Function( _SearchChanged value)?  searchChanged,TResult Function( _CategoryChanged value)?  categoryChanged,TResult Function( _FilterAvailableOnlyToggled value)?  filterAvailableOnlyToggled,TResult Function( _AddToCart value)?  addToCart,TResult Function( _UpdateCartQty value)?  updateCartQty,TResult Function( _RemoveFromCart value)?  removeFromCart,TResult Function( _ClaimPromo value)?  claimPromo,TResult Function( _SetTableNumber value)?  setTableNumber,TResult Function( _SetOrderType value)?  setOrderType,TResult Function( _PlaceOrder value)?  placeOrder,TResult Function( _AdminUpdateStock value)?  adminUpdateStock,TResult Function( _AdminUpdateProduct value)?  adminUpdateProduct,TResult Function( _AdminUpdateOrderStatus value)?  adminUpdateOrderStatus,TResult Function( _AdminToggleOpen value)?  adminToggleOpen,TResult Function( _AdminTogglePromo value)?  adminTogglePromo,TResult Function( _AdminUpdateStoreInfo value)?  adminUpdateStoreInfo,TResult Function( _AdminAddProduct value)?  adminAddProduct,TResult Function( _AdminSaveProduct value)?  adminSaveProduct,TResult Function( _AdminDeleteProduct value)?  adminDeleteProduct,TResult Function( _AdminUpdatePromoBanner value)?  adminUpdatePromoBanner,TResult Function( _RemoteStoreSynced value)?  remoteStoreSynced,TResult Function( _RemoteProductsSynced value)?  remoteProductsSynced,TResult Function( _RemoteSyncFailed value)?  remoteSyncFailed,TResult Function( _AdminEnsureCloudSeeded value)?  adminEnsureCloudSeeded,TResult Function( _AdminResetToTemplate value)?  adminResetToTemplate,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _SwitchTheme() when switchTheme != null:
@@ -79,7 +79,12 @@ return adminUpdateStoreInfo(_that);case _AdminAddProduct() when adminAddProduct 
 return adminAddProduct(_that);case _AdminSaveProduct() when adminSaveProduct != null:
 return adminSaveProduct(_that);case _AdminDeleteProduct() when adminDeleteProduct != null:
 return adminDeleteProduct(_that);case _AdminUpdatePromoBanner() when adminUpdatePromoBanner != null:
-return adminUpdatePromoBanner(_that);case _:
+return adminUpdatePromoBanner(_that);case _RemoteStoreSynced() when remoteStoreSynced != null:
+return remoteStoreSynced(_that);case _RemoteProductsSynced() when remoteProductsSynced != null:
+return remoteProductsSynced(_that);case _RemoteSyncFailed() when remoteSyncFailed != null:
+return remoteSyncFailed(_that);case _AdminEnsureCloudSeeded() when adminEnsureCloudSeeded != null:
+return adminEnsureCloudSeeded(_that);case _AdminResetToTemplate() when adminResetToTemplate != null:
+return adminResetToTemplate(_that);case _:
   return orElse();
 
 }
@@ -97,7 +102,7 @@ return adminUpdatePromoBanner(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SwitchTheme value)  switchTheme,required TResult Function( _SearchChanged value)  searchChanged,required TResult Function( _CategoryChanged value)  categoryChanged,required TResult Function( _FilterAvailableOnlyToggled value)  filterAvailableOnlyToggled,required TResult Function( _AddToCart value)  addToCart,required TResult Function( _UpdateCartQty value)  updateCartQty,required TResult Function( _RemoveFromCart value)  removeFromCart,required TResult Function( _ClaimPromo value)  claimPromo,required TResult Function( _SetTableNumber value)  setTableNumber,required TResult Function( _SetOrderType value)  setOrderType,required TResult Function( _PlaceOrder value)  placeOrder,required TResult Function( _AdminUpdateStock value)  adminUpdateStock,required TResult Function( _AdminUpdateProduct value)  adminUpdateProduct,required TResult Function( _AdminUpdateOrderStatus value)  adminUpdateOrderStatus,required TResult Function( _AdminToggleOpen value)  adminToggleOpen,required TResult Function( _AdminTogglePromo value)  adminTogglePromo,required TResult Function( _AdminUpdateStoreInfo value)  adminUpdateStoreInfo,required TResult Function( _AdminAddProduct value)  adminAddProduct,required TResult Function( _AdminSaveProduct value)  adminSaveProduct,required TResult Function( _AdminDeleteProduct value)  adminDeleteProduct,required TResult Function( _AdminUpdatePromoBanner value)  adminUpdatePromoBanner,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SwitchTheme value)  switchTheme,required TResult Function( _SearchChanged value)  searchChanged,required TResult Function( _CategoryChanged value)  categoryChanged,required TResult Function( _FilterAvailableOnlyToggled value)  filterAvailableOnlyToggled,required TResult Function( _AddToCart value)  addToCart,required TResult Function( _UpdateCartQty value)  updateCartQty,required TResult Function( _RemoveFromCart value)  removeFromCart,required TResult Function( _ClaimPromo value)  claimPromo,required TResult Function( _SetTableNumber value)  setTableNumber,required TResult Function( _SetOrderType value)  setOrderType,required TResult Function( _PlaceOrder value)  placeOrder,required TResult Function( _AdminUpdateStock value)  adminUpdateStock,required TResult Function( _AdminUpdateProduct value)  adminUpdateProduct,required TResult Function( _AdminUpdateOrderStatus value)  adminUpdateOrderStatus,required TResult Function( _AdminToggleOpen value)  adminToggleOpen,required TResult Function( _AdminTogglePromo value)  adminTogglePromo,required TResult Function( _AdminUpdateStoreInfo value)  adminUpdateStoreInfo,required TResult Function( _AdminAddProduct value)  adminAddProduct,required TResult Function( _AdminSaveProduct value)  adminSaveProduct,required TResult Function( _AdminDeleteProduct value)  adminDeleteProduct,required TResult Function( _AdminUpdatePromoBanner value)  adminUpdatePromoBanner,required TResult Function( _RemoteStoreSynced value)  remoteStoreSynced,required TResult Function( _RemoteProductsSynced value)  remoteProductsSynced,required TResult Function( _RemoteSyncFailed value)  remoteSyncFailed,required TResult Function( _AdminEnsureCloudSeeded value)  adminEnsureCloudSeeded,required TResult Function( _AdminResetToTemplate value)  adminResetToTemplate,}){
 final _that = this;
 switch (_that) {
 case _SwitchTheme():
@@ -121,7 +126,12 @@ return adminUpdateStoreInfo(_that);case _AdminAddProduct():
 return adminAddProduct(_that);case _AdminSaveProduct():
 return adminSaveProduct(_that);case _AdminDeleteProduct():
 return adminDeleteProduct(_that);case _AdminUpdatePromoBanner():
-return adminUpdatePromoBanner(_that);case _:
+return adminUpdatePromoBanner(_that);case _RemoteStoreSynced():
+return remoteStoreSynced(_that);case _RemoteProductsSynced():
+return remoteProductsSynced(_that);case _RemoteSyncFailed():
+return remoteSyncFailed(_that);case _AdminEnsureCloudSeeded():
+return adminEnsureCloudSeeded(_that);case _AdminResetToTemplate():
+return adminResetToTemplate(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -138,7 +148,7 @@ return adminUpdatePromoBanner(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SwitchTheme value)?  switchTheme,TResult? Function( _SearchChanged value)?  searchChanged,TResult? Function( _CategoryChanged value)?  categoryChanged,TResult? Function( _FilterAvailableOnlyToggled value)?  filterAvailableOnlyToggled,TResult? Function( _AddToCart value)?  addToCart,TResult? Function( _UpdateCartQty value)?  updateCartQty,TResult? Function( _RemoveFromCart value)?  removeFromCart,TResult? Function( _ClaimPromo value)?  claimPromo,TResult? Function( _SetTableNumber value)?  setTableNumber,TResult? Function( _SetOrderType value)?  setOrderType,TResult? Function( _PlaceOrder value)?  placeOrder,TResult? Function( _AdminUpdateStock value)?  adminUpdateStock,TResult? Function( _AdminUpdateProduct value)?  adminUpdateProduct,TResult? Function( _AdminUpdateOrderStatus value)?  adminUpdateOrderStatus,TResult? Function( _AdminToggleOpen value)?  adminToggleOpen,TResult? Function( _AdminTogglePromo value)?  adminTogglePromo,TResult? Function( _AdminUpdateStoreInfo value)?  adminUpdateStoreInfo,TResult? Function( _AdminAddProduct value)?  adminAddProduct,TResult? Function( _AdminSaveProduct value)?  adminSaveProduct,TResult? Function( _AdminDeleteProduct value)?  adminDeleteProduct,TResult? Function( _AdminUpdatePromoBanner value)?  adminUpdatePromoBanner,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SwitchTheme value)?  switchTheme,TResult? Function( _SearchChanged value)?  searchChanged,TResult? Function( _CategoryChanged value)?  categoryChanged,TResult? Function( _FilterAvailableOnlyToggled value)?  filterAvailableOnlyToggled,TResult? Function( _AddToCart value)?  addToCart,TResult? Function( _UpdateCartQty value)?  updateCartQty,TResult? Function( _RemoveFromCart value)?  removeFromCart,TResult? Function( _ClaimPromo value)?  claimPromo,TResult? Function( _SetTableNumber value)?  setTableNumber,TResult? Function( _SetOrderType value)?  setOrderType,TResult? Function( _PlaceOrder value)?  placeOrder,TResult? Function( _AdminUpdateStock value)?  adminUpdateStock,TResult? Function( _AdminUpdateProduct value)?  adminUpdateProduct,TResult? Function( _AdminUpdateOrderStatus value)?  adminUpdateOrderStatus,TResult? Function( _AdminToggleOpen value)?  adminToggleOpen,TResult? Function( _AdminTogglePromo value)?  adminTogglePromo,TResult? Function( _AdminUpdateStoreInfo value)?  adminUpdateStoreInfo,TResult? Function( _AdminAddProduct value)?  adminAddProduct,TResult? Function( _AdminSaveProduct value)?  adminSaveProduct,TResult? Function( _AdminDeleteProduct value)?  adminDeleteProduct,TResult? Function( _AdminUpdatePromoBanner value)?  adminUpdatePromoBanner,TResult? Function( _RemoteStoreSynced value)?  remoteStoreSynced,TResult? Function( _RemoteProductsSynced value)?  remoteProductsSynced,TResult? Function( _RemoteSyncFailed value)?  remoteSyncFailed,TResult? Function( _AdminEnsureCloudSeeded value)?  adminEnsureCloudSeeded,TResult? Function( _AdminResetToTemplate value)?  adminResetToTemplate,}){
 final _that = this;
 switch (_that) {
 case _SwitchTheme() when switchTheme != null:
@@ -162,7 +172,12 @@ return adminUpdateStoreInfo(_that);case _AdminAddProduct() when adminAddProduct 
 return adminAddProduct(_that);case _AdminSaveProduct() when adminSaveProduct != null:
 return adminSaveProduct(_that);case _AdminDeleteProduct() when adminDeleteProduct != null:
 return adminDeleteProduct(_that);case _AdminUpdatePromoBanner() when adminUpdatePromoBanner != null:
-return adminUpdatePromoBanner(_that);case _:
+return adminUpdatePromoBanner(_that);case _RemoteStoreSynced() when remoteStoreSynced != null:
+return remoteStoreSynced(_that);case _RemoteProductsSynced() when remoteProductsSynced != null:
+return remoteProductsSynced(_that);case _RemoteSyncFailed() when remoteSyncFailed != null:
+return remoteSyncFailed(_that);case _AdminEnsureCloudSeeded() when adminEnsureCloudSeeded != null:
+return adminEnsureCloudSeeded(_that);case _AdminResetToTemplate() when adminResetToTemplate != null:
+return adminResetToTemplate(_that);case _:
   return null;
 
 }
@@ -179,7 +194,7 @@ return adminUpdatePromoBanner(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String storeId)?  switchTheme,TResult Function( String query)?  searchChanged,TResult Function( String categoryId)?  categoryChanged,TResult Function()?  filterAvailableOnlyToggled,TResult Function( Product product,  List<String> options,  int? unitPrice,  int qty)?  addToCart,TResult Function( String cartKey,  int delta)?  updateCartQty,TResult Function( String cartKey)?  removeFromCart,TResult Function()?  claimPromo,TResult Function( String? tableNumber)?  setTableNumber,TResult Function( String orderType)?  setOrderType,TResult Function( String customer,  String note,  void Function(String waMessage)? onSuccess)?  placeOrder,TResult Function( String productId,  int stock)?  adminUpdateStock,TResult Function( String productId,  String? name,  String? desc,  int? price,  int? originalPrice,  bool clearDiscount)?  adminUpdateProduct,TResult Function( String orderId,  OrderStatus status)?  adminUpdateOrderStatus,TResult Function( bool? openOverride)?  adminToggleOpen,TResult Function( bool active)?  adminTogglePromo,TResult Function( String? name,  String? tagline,  String? address,  String? whatsapp,  String? instagram)?  adminUpdateStoreInfo,TResult Function( Product product)?  adminAddProduct,TResult Function( Product product)?  adminSaveProduct,TResult Function( String productId)?  adminDeleteProduct,TResult Function( String? title,  String? desc,  String? bannerImage,  String? badge)?  adminUpdatePromoBanner,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String storeId)?  switchTheme,TResult Function( String query)?  searchChanged,TResult Function( String categoryId)?  categoryChanged,TResult Function()?  filterAvailableOnlyToggled,TResult Function( Product product,  List<String> options,  int? unitPrice,  int qty)?  addToCart,TResult Function( String cartKey,  int delta)?  updateCartQty,TResult Function( String cartKey)?  removeFromCart,TResult Function()?  claimPromo,TResult Function( String? tableNumber)?  setTableNumber,TResult Function( String orderType)?  setOrderType,TResult Function( String customer,  String note,  void Function(String waMessage)? onSuccess)?  placeOrder,TResult Function( String productId,  int stock)?  adminUpdateStock,TResult Function( String productId,  String? name,  String? desc,  int? price,  int? originalPrice,  bool clearDiscount)?  adminUpdateProduct,TResult Function( String orderId,  OrderStatus status)?  adminUpdateOrderStatus,TResult Function( bool? openOverride)?  adminToggleOpen,TResult Function( bool active)?  adminTogglePromo,TResult Function( String? name,  String? tagline,  String? address,  String? whatsapp,  String? instagram)?  adminUpdateStoreInfo,TResult Function( Product product)?  adminAddProduct,TResult Function( Product product)?  adminSaveProduct,TResult Function( String productId)?  adminDeleteProduct,TResult Function( String? title,  String? desc,  String? bannerImage,  String? badge)?  adminUpdatePromoBanner,TResult Function( String storeId,  RemoteStoreDoc doc)?  remoteStoreSynced,TResult Function( String storeId,  List<Product>? products)?  remoteProductsSynced,TResult Function( String message)?  remoteSyncFailed,TResult Function()?  adminEnsureCloudSeeded,TResult Function()?  adminResetToTemplate,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SwitchTheme() when switchTheme != null:
 return switchTheme(_that.storeId);case _SearchChanged() when searchChanged != null:
@@ -202,7 +217,12 @@ return adminUpdateStoreInfo(_that.name,_that.tagline,_that.address,_that.whatsap
 return adminAddProduct(_that.product);case _AdminSaveProduct() when adminSaveProduct != null:
 return adminSaveProduct(_that.product);case _AdminDeleteProduct() when adminDeleteProduct != null:
 return adminDeleteProduct(_that.productId);case _AdminUpdatePromoBanner() when adminUpdatePromoBanner != null:
-return adminUpdatePromoBanner(_that.title,_that.desc,_that.bannerImage,_that.badge);case _:
+return adminUpdatePromoBanner(_that.title,_that.desc,_that.bannerImage,_that.badge);case _RemoteStoreSynced() when remoteStoreSynced != null:
+return remoteStoreSynced(_that.storeId,_that.doc);case _RemoteProductsSynced() when remoteProductsSynced != null:
+return remoteProductsSynced(_that.storeId,_that.products);case _RemoteSyncFailed() when remoteSyncFailed != null:
+return remoteSyncFailed(_that.message);case _AdminEnsureCloudSeeded() when adminEnsureCloudSeeded != null:
+return adminEnsureCloudSeeded();case _AdminResetToTemplate() when adminResetToTemplate != null:
+return adminResetToTemplate();case _:
   return orElse();
 
 }
@@ -220,7 +240,7 @@ return adminUpdatePromoBanner(_that.title,_that.desc,_that.bannerImage,_that.bad
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String storeId)  switchTheme,required TResult Function( String query)  searchChanged,required TResult Function( String categoryId)  categoryChanged,required TResult Function()  filterAvailableOnlyToggled,required TResult Function( Product product,  List<String> options,  int? unitPrice,  int qty)  addToCart,required TResult Function( String cartKey,  int delta)  updateCartQty,required TResult Function( String cartKey)  removeFromCart,required TResult Function()  claimPromo,required TResult Function( String? tableNumber)  setTableNumber,required TResult Function( String orderType)  setOrderType,required TResult Function( String customer,  String note,  void Function(String waMessage)? onSuccess)  placeOrder,required TResult Function( String productId,  int stock)  adminUpdateStock,required TResult Function( String productId,  String? name,  String? desc,  int? price,  int? originalPrice,  bool clearDiscount)  adminUpdateProduct,required TResult Function( String orderId,  OrderStatus status)  adminUpdateOrderStatus,required TResult Function( bool? openOverride)  adminToggleOpen,required TResult Function( bool active)  adminTogglePromo,required TResult Function( String? name,  String? tagline,  String? address,  String? whatsapp,  String? instagram)  adminUpdateStoreInfo,required TResult Function( Product product)  adminAddProduct,required TResult Function( Product product)  adminSaveProduct,required TResult Function( String productId)  adminDeleteProduct,required TResult Function( String? title,  String? desc,  String? bannerImage,  String? badge)  adminUpdatePromoBanner,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String storeId)  switchTheme,required TResult Function( String query)  searchChanged,required TResult Function( String categoryId)  categoryChanged,required TResult Function()  filterAvailableOnlyToggled,required TResult Function( Product product,  List<String> options,  int? unitPrice,  int qty)  addToCart,required TResult Function( String cartKey,  int delta)  updateCartQty,required TResult Function( String cartKey)  removeFromCart,required TResult Function()  claimPromo,required TResult Function( String? tableNumber)  setTableNumber,required TResult Function( String orderType)  setOrderType,required TResult Function( String customer,  String note,  void Function(String waMessage)? onSuccess)  placeOrder,required TResult Function( String productId,  int stock)  adminUpdateStock,required TResult Function( String productId,  String? name,  String? desc,  int? price,  int? originalPrice,  bool clearDiscount)  adminUpdateProduct,required TResult Function( String orderId,  OrderStatus status)  adminUpdateOrderStatus,required TResult Function( bool? openOverride)  adminToggleOpen,required TResult Function( bool active)  adminTogglePromo,required TResult Function( String? name,  String? tagline,  String? address,  String? whatsapp,  String? instagram)  adminUpdateStoreInfo,required TResult Function( Product product)  adminAddProduct,required TResult Function( Product product)  adminSaveProduct,required TResult Function( String productId)  adminDeleteProduct,required TResult Function( String? title,  String? desc,  String? bannerImage,  String? badge)  adminUpdatePromoBanner,required TResult Function( String storeId,  RemoteStoreDoc doc)  remoteStoreSynced,required TResult Function( String storeId,  List<Product>? products)  remoteProductsSynced,required TResult Function( String message)  remoteSyncFailed,required TResult Function()  adminEnsureCloudSeeded,required TResult Function()  adminResetToTemplate,}) {final _that = this;
 switch (_that) {
 case _SwitchTheme():
 return switchTheme(_that.storeId);case _SearchChanged():
@@ -243,7 +263,12 @@ return adminUpdateStoreInfo(_that.name,_that.tagline,_that.address,_that.whatsap
 return adminAddProduct(_that.product);case _AdminSaveProduct():
 return adminSaveProduct(_that.product);case _AdminDeleteProduct():
 return adminDeleteProduct(_that.productId);case _AdminUpdatePromoBanner():
-return adminUpdatePromoBanner(_that.title,_that.desc,_that.bannerImage,_that.badge);case _:
+return adminUpdatePromoBanner(_that.title,_that.desc,_that.bannerImage,_that.badge);case _RemoteStoreSynced():
+return remoteStoreSynced(_that.storeId,_that.doc);case _RemoteProductsSynced():
+return remoteProductsSynced(_that.storeId,_that.products);case _RemoteSyncFailed():
+return remoteSyncFailed(_that.message);case _AdminEnsureCloudSeeded():
+return adminEnsureCloudSeeded();case _AdminResetToTemplate():
+return adminResetToTemplate();case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -260,7 +285,7 @@ return adminUpdatePromoBanner(_that.title,_that.desc,_that.bannerImage,_that.bad
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String storeId)?  switchTheme,TResult? Function( String query)?  searchChanged,TResult? Function( String categoryId)?  categoryChanged,TResult? Function()?  filterAvailableOnlyToggled,TResult? Function( Product product,  List<String> options,  int? unitPrice,  int qty)?  addToCart,TResult? Function( String cartKey,  int delta)?  updateCartQty,TResult? Function( String cartKey)?  removeFromCart,TResult? Function()?  claimPromo,TResult? Function( String? tableNumber)?  setTableNumber,TResult? Function( String orderType)?  setOrderType,TResult? Function( String customer,  String note,  void Function(String waMessage)? onSuccess)?  placeOrder,TResult? Function( String productId,  int stock)?  adminUpdateStock,TResult? Function( String productId,  String? name,  String? desc,  int? price,  int? originalPrice,  bool clearDiscount)?  adminUpdateProduct,TResult? Function( String orderId,  OrderStatus status)?  adminUpdateOrderStatus,TResult? Function( bool? openOverride)?  adminToggleOpen,TResult? Function( bool active)?  adminTogglePromo,TResult? Function( String? name,  String? tagline,  String? address,  String? whatsapp,  String? instagram)?  adminUpdateStoreInfo,TResult? Function( Product product)?  adminAddProduct,TResult? Function( Product product)?  adminSaveProduct,TResult? Function( String productId)?  adminDeleteProduct,TResult? Function( String? title,  String? desc,  String? bannerImage,  String? badge)?  adminUpdatePromoBanner,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String storeId)?  switchTheme,TResult? Function( String query)?  searchChanged,TResult? Function( String categoryId)?  categoryChanged,TResult? Function()?  filterAvailableOnlyToggled,TResult? Function( Product product,  List<String> options,  int? unitPrice,  int qty)?  addToCart,TResult? Function( String cartKey,  int delta)?  updateCartQty,TResult? Function( String cartKey)?  removeFromCart,TResult? Function()?  claimPromo,TResult? Function( String? tableNumber)?  setTableNumber,TResult? Function( String orderType)?  setOrderType,TResult? Function( String customer,  String note,  void Function(String waMessage)? onSuccess)?  placeOrder,TResult? Function( String productId,  int stock)?  adminUpdateStock,TResult? Function( String productId,  String? name,  String? desc,  int? price,  int? originalPrice,  bool clearDiscount)?  adminUpdateProduct,TResult? Function( String orderId,  OrderStatus status)?  adminUpdateOrderStatus,TResult? Function( bool? openOverride)?  adminToggleOpen,TResult? Function( bool active)?  adminTogglePromo,TResult? Function( String? name,  String? tagline,  String? address,  String? whatsapp,  String? instagram)?  adminUpdateStoreInfo,TResult? Function( Product product)?  adminAddProduct,TResult? Function( Product product)?  adminSaveProduct,TResult? Function( String productId)?  adminDeleteProduct,TResult? Function( String? title,  String? desc,  String? bannerImage,  String? badge)?  adminUpdatePromoBanner,TResult? Function( String storeId,  RemoteStoreDoc doc)?  remoteStoreSynced,TResult? Function( String storeId,  List<Product>? products)?  remoteProductsSynced,TResult? Function( String message)?  remoteSyncFailed,TResult? Function()?  adminEnsureCloudSeeded,TResult? Function()?  adminResetToTemplate,}) {final _that = this;
 switch (_that) {
 case _SwitchTheme() when switchTheme != null:
 return switchTheme(_that.storeId);case _SearchChanged() when searchChanged != null:
@@ -283,7 +308,12 @@ return adminUpdateStoreInfo(_that.name,_that.tagline,_that.address,_that.whatsap
 return adminAddProduct(_that.product);case _AdminSaveProduct() when adminSaveProduct != null:
 return adminSaveProduct(_that.product);case _AdminDeleteProduct() when adminDeleteProduct != null:
 return adminDeleteProduct(_that.productId);case _AdminUpdatePromoBanner() when adminUpdatePromoBanner != null:
-return adminUpdatePromoBanner(_that.title,_that.desc,_that.bannerImage,_that.badge);case _:
+return adminUpdatePromoBanner(_that.title,_that.desc,_that.bannerImage,_that.badge);case _RemoteStoreSynced() when remoteStoreSynced != null:
+return remoteStoreSynced(_that.storeId,_that.doc);case _RemoteProductsSynced() when remoteProductsSynced != null:
+return remoteProductsSynced(_that.storeId,_that.products);case _RemoteSyncFailed() when remoteSyncFailed != null:
+return remoteSyncFailed(_that.message);case _AdminEnsureCloudSeeded() when adminEnsureCloudSeeded != null:
+return adminEnsureCloudSeeded();case _AdminResetToTemplate() when adminResetToTemplate != null:
+return adminResetToTemplate();case _:
   return null;
 
 }
@@ -1681,5 +1711,279 @@ as String?,
 
 
 }
+
+/// @nodoc
+
+
+class _RemoteStoreSynced implements StoreEvent {
+  const _RemoteStoreSynced({required this.storeId, required this.doc});
+  
+
+ final  String storeId;
+ final  RemoteStoreDoc doc;
+
+/// Create a copy of StoreEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RemoteStoreSyncedCopyWith<_RemoteStoreSynced> get copyWith => __$RemoteStoreSyncedCopyWithImpl<_RemoteStoreSynced>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RemoteStoreSynced&&(identical(other.storeId, storeId) || other.storeId == storeId)&&(identical(other.doc, doc) || other.doc == doc));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,storeId,doc);
+
+@override
+String toString() {
+  return 'StoreEvent.remoteStoreSynced(storeId: $storeId, doc: $doc)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RemoteStoreSyncedCopyWith<$Res> implements $StoreEventCopyWith<$Res> {
+  factory _$RemoteStoreSyncedCopyWith(_RemoteStoreSynced value, $Res Function(_RemoteStoreSynced) _then) = __$RemoteStoreSyncedCopyWithImpl;
+@useResult
+$Res call({
+ String storeId, RemoteStoreDoc doc
+});
+
+
+
+
+}
+/// @nodoc
+class __$RemoteStoreSyncedCopyWithImpl<$Res>
+    implements _$RemoteStoreSyncedCopyWith<$Res> {
+  __$RemoteStoreSyncedCopyWithImpl(this._self, this._then);
+
+  final _RemoteStoreSynced _self;
+  final $Res Function(_RemoteStoreSynced) _then;
+
+/// Create a copy of StoreEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? storeId = null,Object? doc = null,}) {
+  return _then(_RemoteStoreSynced(
+storeId: null == storeId ? _self.storeId : storeId // ignore: cast_nullable_to_non_nullable
+as String,doc: null == doc ? _self.doc : doc // ignore: cast_nullable_to_non_nullable
+as RemoteStoreDoc,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _RemoteProductsSynced implements StoreEvent {
+  const _RemoteProductsSynced({required this.storeId, final  List<Product>? products}): _products = products;
+  
+
+ final  String storeId;
+ final  List<Product>? _products;
+ List<Product>? get products {
+  final value = _products;
+  if (value == null) return null;
+  if (_products is EqualUnmodifiableListView) return _products;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+
+/// Create a copy of StoreEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RemoteProductsSyncedCopyWith<_RemoteProductsSynced> get copyWith => __$RemoteProductsSyncedCopyWithImpl<_RemoteProductsSynced>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RemoteProductsSynced&&(identical(other.storeId, storeId) || other.storeId == storeId)&&const DeepCollectionEquality().equals(other._products, _products));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,storeId,const DeepCollectionEquality().hash(_products));
+
+@override
+String toString() {
+  return 'StoreEvent.remoteProductsSynced(storeId: $storeId, products: $products)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RemoteProductsSyncedCopyWith<$Res> implements $StoreEventCopyWith<$Res> {
+  factory _$RemoteProductsSyncedCopyWith(_RemoteProductsSynced value, $Res Function(_RemoteProductsSynced) _then) = __$RemoteProductsSyncedCopyWithImpl;
+@useResult
+$Res call({
+ String storeId, List<Product>? products
+});
+
+
+
+
+}
+/// @nodoc
+class __$RemoteProductsSyncedCopyWithImpl<$Res>
+    implements _$RemoteProductsSyncedCopyWith<$Res> {
+  __$RemoteProductsSyncedCopyWithImpl(this._self, this._then);
+
+  final _RemoteProductsSynced _self;
+  final $Res Function(_RemoteProductsSynced) _then;
+
+/// Create a copy of StoreEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? storeId = null,Object? products = freezed,}) {
+  return _then(_RemoteProductsSynced(
+storeId: null == storeId ? _self.storeId : storeId // ignore: cast_nullable_to_non_nullable
+as String,products: freezed == products ? _self._products : products // ignore: cast_nullable_to_non_nullable
+as List<Product>?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _RemoteSyncFailed implements StoreEvent {
+  const _RemoteSyncFailed(this.message);
+  
+
+ final  String message;
+
+/// Create a copy of StoreEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RemoteSyncFailedCopyWith<_RemoteSyncFailed> get copyWith => __$RemoteSyncFailedCopyWithImpl<_RemoteSyncFailed>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RemoteSyncFailed&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message);
+
+@override
+String toString() {
+  return 'StoreEvent.remoteSyncFailed(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RemoteSyncFailedCopyWith<$Res> implements $StoreEventCopyWith<$Res> {
+  factory _$RemoteSyncFailedCopyWith(_RemoteSyncFailed value, $Res Function(_RemoteSyncFailed) _then) = __$RemoteSyncFailedCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class __$RemoteSyncFailedCopyWithImpl<$Res>
+    implements _$RemoteSyncFailedCopyWith<$Res> {
+  __$RemoteSyncFailedCopyWithImpl(this._self, this._then);
+
+  final _RemoteSyncFailed _self;
+  final $Res Function(_RemoteSyncFailed) _then;
+
+/// Create a copy of StoreEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(_RemoteSyncFailed(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _AdminEnsureCloudSeeded implements StoreEvent {
+  const _AdminEnsureCloudSeeded();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEnsureCloudSeeded);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'StoreEvent.adminEnsureCloudSeeded()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class _AdminResetToTemplate implements StoreEvent {
+  const _AdminResetToTemplate();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminResetToTemplate);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'StoreEvent.adminResetToTemplate()';
+}
+
+
+}
+
+
+
 
 // dart format on

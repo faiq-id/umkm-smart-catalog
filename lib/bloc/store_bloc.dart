@@ -1,15 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../config/app_config.dart';
 import '../data/store_data.dart';
 import '../models/models.dart';
+import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 import '../utils/format.dart';
 import 'store_event.dart';
 import 'store_state.dart';
 
 class StoreBloc extends Bloc<StoreEvent, StoreState> {
-  StoreBloc() : super(_initialState()) {
-    on<StoreEvent>((event, emit) {
-      event.when(
+  StoreBloc({
+    FirestoreService? firestoreService,
+    AuthService? authService,
+    bool enableCloudSync = true,
+  })  : _firestore = enableCloudSync ? (firestoreService ?? FirestoreService()) : null,
+        _auth = enableCloudSync ? (authService ?? AuthService()) : null,
+        super(_initialState()) {
+    on<StoreEvent>((event, emit) async {
+      await event.when<FutureOr<void>>(
         switchTheme: (storeId) => _onSwitchTheme(storeId, emit),
         searchChanged: (query) => _onSearchChanged(query, emit),
         categoryChanged: (categoryId) => _onCategoryChanged(categoryId, emit),
@@ -26,47 +37,295 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
             _onPlaceOrder(customer, note, onSuccess, emit),
         adminUpdateStock: (productId, stock) =>
             _onAdminUpdateStock(productId, stock, emit),
-        adminUpdateProduct: (productId, name, desc, price, originalPrice, clearDiscount) =>
-            _onAdminUpdateProduct(productId, name, desc, price, originalPrice, clearDiscount, emit),
+        adminUpdateProduct:
+            (productId, name, desc, price, originalPrice, clearDiscount) =>
+                _onAdminUpdateProduct(
+                    productId, name, desc, price, originalPrice, clearDiscount, emit),
         adminUpdateOrderStatus: (orderId, status) =>
             _onAdminUpdateOrderStatus(orderId, status, emit),
         adminToggleOpen: (openOverride) =>
             _onAdminToggleOpen(openOverride, emit),
         adminTogglePromo: (active) => _onAdminTogglePromo(active, emit),
         adminUpdateStoreInfo: (name, tagline, address, whatsapp, instagram) =>
-            _onAdminUpdateStoreInfo(name, tagline, address, whatsapp, instagram, emit),
+            _onAdminUpdateStoreInfo(
+                name, tagline, address, whatsapp, instagram, emit),
         adminAddProduct: (product) => _onAdminAddProduct(product, emit),
         adminSaveProduct: (product) => _onAdminSaveProduct(product, emit),
-        adminDeleteProduct: (productId) => _onAdminDeleteProduct(productId, emit),
+        adminDeleteProduct: (productId) =>
+            _onAdminDeleteProduct(productId, emit),
         adminUpdatePromoBanner: (title, desc, bannerImage, badge) =>
             _onAdminUpdatePromoBanner(title, desc, bannerImage, badge, emit),
+        remoteStoreSynced: (storeId, doc) =>
+            _onRemoteStoreSynced(storeId, doc, emit),
+        remoteProductsSynced: (storeId, products) =>
+            _onRemoteProductsSynced(storeId, products, emit),
+        remoteSyncFailed: (message) => _onRemoteSyncFailed(message, emit),
+        adminEnsureCloudSeeded: () => _onAdminEnsureCloudSeeded(emit),
+        adminResetToTemplate: () => _onAdminResetToTemplate(emit),
       );
     });
+
+    if (_firestore != null) {
+      _subscribeToStore(state.currentStoreId);
+    }
+  }
+
+  final FirestoreService? _firestore;
+  final AuthService? _auth;
+  StreamSubscription<RemoteStoreDoc>? _storeSub;
+  StreamSubscription<List<Product>?>? _productsSub;
+
+  bool get _canWriteCloud => _firestore != null && (_auth?.isSignedIn ?? false);
+
+  static Map<String, StoreProfile> _buildTemplateStores() {
+    final sList = [buildBakery(), buildCoffee(), buildPet()];
+    if (!AppConfig.isDemoShowcase) {
+      final target = sList.firstWhere(
+        (s) => s.id == AppConfig.defaultStoreId,
+        orElse: () => sList.first,
+      );
+      return {target.id: target};
+    }
+    return {for (final s in sList) s.id: s};
   }
 
   static StoreState _initialState() {
-    final sList = [buildBakery(), buildCoffee(), buildPet()];
-    final stores = {for (final s in sList) s.id: s};
-    final orders = {for (final s in sList) s.id: _seedOrders(s)};
+    final stores = _buildTemplateStores();
+    final initialId = stores.containsKey(AppConfig.defaultStoreId)
+        ? AppConfig.defaultStoreId
+        : stores.keys.first;
+    final orders = {for (final s in stores.values) s.id: _seedOrders(s)};
     return StoreState(
-      currentStoreId: 'bakery',
+      currentStoreId: initialId,
       stores: stores,
       orders: orders,
     );
   }
 
+  void _subscribeToStore(String storeId) {
+    final fs = _firestore;
+    if (fs == null) return;
+
+    _storeSub?.cancel();
+    _productsSub?.cancel();
+
+    _storeSub = fs.watchStore(storeId).listen(
+      (doc) {
+        if (!isClosed) {
+          add(StoreEvent.remoteStoreSynced(storeId: storeId, doc: doc));
+        }
+      },
+      onError: (Object err) {
+        if (!isClosed) {
+          add(StoreEvent.remoteSyncFailed(err.toString()));
+        }
+      },
+    );
+
+    _productsSub = fs.watchProducts(storeId).listen(
+      (products) {
+        if (!isClosed) {
+          add(StoreEvent.remoteProductsSynced(
+              storeId: storeId, products: products));
+        }
+      },
+      onError: (Object err) {
+        if (!isClosed) {
+          add(StoreEvent.remoteSyncFailed(err.toString()));
+        }
+      },
+    );
+  }
+
+  @override
+  Future<void> close() async {
+    await _storeSub?.cancel();
+    await _productsSub?.cancel();
+    return super.close();
+  }
+
+  Future<void> _persistCloud(
+    Emitter<StoreState> emit,
+    Future<void> Function(FirestoreService fs) task,
+  ) async {
+    final fs = _firestore;
+    if (!_canWriteCloud || fs == null) return;
+    emit(state.copyWith(cloudSyncing: true, cloudError: null));
+    try {
+      await task(fs);
+      if (!isClosed) {
+        emit(state.copyWith(
+          cloudSyncing: false,
+          cloudConnected: true,
+          cloudSeeded: true,
+          cloudError: null,
+        ));
+      }
+    } catch (e) {
+      if (!isClosed) {
+        emit(state.copyWith(
+          cloudSyncing: false,
+          cloudError: 'Gagal menyimpan ke server: $e',
+        ));
+      }
+    }
+  }
+
+  void _onRemoteStoreSynced(
+    String storeId,
+    RemoteStoreDoc doc,
+    Emitter<StoreState> emit,
+  ) {
+    final current = state.stores[storeId];
+    if (current == null) return;
+
+    if (!doc.exists) {
+      emit(state.copyWith(
+        cloudConnected: true,
+        cloudSeeded: false,
+        cloudError: null,
+      ));
+      return;
+    }
+
+    var updated = current;
+    if (doc.name != null && doc.name!.isNotEmpty) {
+      updated = updated.copyWith(name: doc.name!);
+    }
+    if (doc.tagline != null) {
+      updated = updated.copyWith(tagline: doc.tagline!);
+    }
+    if (doc.address != null) {
+      updated = updated.copyWith(address: doc.address!);
+    }
+    if (doc.whatsapp != null) {
+      updated = updated.copyWith(whatsapp: doc.whatsapp!);
+    }
+    if (doc.instagram != null) {
+      updated = updated.copyWith(instagram: doc.instagram!);
+    }
+    if (doc.banner != null && doc.banner!.isNotEmpty) {
+      updated = updated.copyWith(banner: doc.banner!);
+    }
+    if (doc.promo != null) {
+      updated = updated.copyWith(promo: doc.promo!);
+    }
+
+    final updatedStores = Map<String, StoreProfile>.from(state.stores);
+    updatedStores[storeId] = updated;
+
+    final isCurrent = storeId == state.currentStoreId;
+    emit(state.copyWith(
+      stores: updatedStores,
+      promoActive: isCurrent && doc.promoActive != null
+          ? doc.promoActive!
+          : state.promoActive,
+      openOverride: isCurrent && doc.hasOpenOverride
+          ? doc.openOverride
+          : state.openOverride,
+      cloudConnected: true,
+      cloudSeeded: true,
+      cloudError: null,
+    ));
+  }
+
+  void _onRemoteProductsSynced(
+    String storeId,
+    List<Product>? products,
+    Emitter<StoreState> emit,
+  ) {
+    if (products == null || products.isEmpty) return;
+    final current = state.stores[storeId];
+    if (current == null) return;
+
+    final updatedStores = Map<String, StoreProfile>.from(state.stores);
+    updatedStores[storeId] = current.copyWith(products: products);
+
+    var reconciledCart = state.cart;
+    if (storeId == state.currentStoreId && state.cart.isNotEmpty) {
+      final byId = {for (final p in products) p.id: p};
+      final nextCart = <CartItem>[];
+      for (final item in state.cart) {
+        final fresh = byId[item.product.id];
+        if (fresh == null || fresh.soldOut) continue;
+        final clampedQty = item.qty > fresh.stock ? fresh.stock : item.qty;
+        if (clampedQty > 0) {
+          final priceDelta = item.unitPrice - item.product.price;
+          nextCart.add(item.copyWith(
+            product: fresh,
+            qty: clampedQty,
+            unitPrice: (fresh.price + priceDelta).clamp(0, 1000000000),
+          ));
+        }
+      }
+      reconciledCart = nextCart;
+    }
+
+    emit(state.copyWith(
+      stores: updatedStores,
+      cart: reconciledCart,
+      cloudConnected: true,
+      cloudSeeded: true,
+      cloudError: null,
+    ));
+  }
+
+  void _onRemoteSyncFailed(String message, Emitter<StoreState> emit) {
+    emit(state.copyWith(
+      cloudSyncing: false,
+      cloudError: message,
+    ));
+  }
+
+  Future<void> _onAdminEnsureCloudSeeded(Emitter<StoreState> emit) async {
+    await _persistCloud(emit, (fs) async {
+      await fs.ensureStoreSeeded(
+        templateStore: state.store,
+        promoActive: state.promoActive,
+        openOverride: state.openOverride,
+      );
+    });
+  }
+
+  Future<void> _onAdminResetToTemplate(Emitter<StoreState> emit) async {
+    final templates = _buildTemplateStores();
+    final template = templates[state.currentStoreId];
+    if (template == null) return;
+
+    final updatedStores = Map<String, StoreProfile>.from(state.stores);
+    updatedStores[state.currentStoreId] = template;
+    emit(state.copyWith(
+      stores: updatedStores,
+      promoActive: true,
+      openOverride: null,
+    ));
+
+    await _persistCloud(emit, (fs) async {
+      await fs.overwriteStoreWithSeed(
+        templateStore: template,
+        promoActive: true,
+        openOverride: null,
+      );
+    });
+  }
+
   void _onSwitchTheme(String storeId, Emitter<StoreState> emit) {
-    if (storeId == state.currentStoreId) return;
+    if (storeId == state.currentStoreId || !state.stores.containsKey(storeId)) {
+      return;
+    }
     emit(state.copyWith(
       currentStoreId: storeId,
       cart: const [],
       promoClaimed: false,
       tableNumber: null,
       openOverride: null,
+      promoActive: true,
       searchQuery: '',
       selectedCategory: 'all',
       availableOnly: false,
+      cloudSeeded: false,
     ));
+    _subscribeToStore(storeId);
   }
 
   void _onSearchChanged(String query, Emitter<StoreState> emit) {
@@ -81,8 +340,8 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
     emit(state.copyWith(availableOnly: !state.availableOnly));
   }
 
-  void _onAddToCart(
-      Product product, List<String> options, int? unitPrice, int qty, Emitter<StoreState> emit) {
+  void _onAddToCart(Product product, List<String> options, int? unitPrice,
+      int qty, Emitter<StoreState> emit) {
     if (product.soldOut) return;
     final currentQty = state.qtyInCart(product);
     if (currentQty + qty > product.stock) return;
@@ -112,7 +371,8 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
     if (idx < 0) return;
 
     final item = cart[idx];
-    if (delta > 0 && state.qtyInCart(item.product) + delta > item.product.stock) {
+    if (delta > 0 &&
+        state.qtyInCart(item.product) + delta > item.product.stock) {
       return;
     }
 
@@ -126,7 +386,8 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
   }
 
   void _onRemoveFromCart(String cartKey, Emitter<StoreState> emit) {
-    final cart = List<CartItem>.from(state.cart)..removeWhere((c) => c.key == cartKey);
+    final cart = List<CartItem>.from(state.cart)
+      ..removeWhere((c) => c.key == cartKey);
     emit(state.copyWith(cart: cart));
   }
 
@@ -183,10 +444,10 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
       items: state.cart.map((c) => '${c.qty}x ${c.product.name}').toList(),
       total: state.total,
       time: DateTime.now(),
-      channel: 'WhatsApp · ${state.orderType == 'Delivery' ? 'Delivery' : 'Pickup'}',
+      channel:
+          'WhatsApp · ${state.orderType == 'Delivery' ? 'Delivery' : 'Pickup'}',
     );
 
-    // Update stock & sold count
     final updatedProducts = List<Product>.from(store.products);
     for (final c in state.cart) {
       final pIndex = updatedProducts.indexWhere((p) => p.id == c.product.id);
@@ -217,44 +478,69 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
     onSuccess?.call(waMessage);
   }
 
-  void _onAdminUpdateStock(String productId, int stock, Emitter<StoreState> emit) {
+  Future<void> _onAdminUpdateStock(
+      String productId, int stock, Emitter<StoreState> emit) async {
     final store = state.store;
     final products = List<Product>.from(store.products);
     final idx = products.indexWhere((p) => p.id == productId);
-    if (idx >= 0) {
-      products[idx] = products[idx].copyWith(stock: stock.clamp(0, 9999).toInt());
-      final updatedStores = Map<String, StoreProfile>.from(state.stores);
-      updatedStores[state.currentStoreId] = store.copyWith(products: products);
-      emit(state.copyWith(stores: updatedStores));
-    }
+    if (idx < 0) return;
+
+    final updatedProduct =
+        products[idx].copyWith(stock: stock.clamp(0, 9999).toInt());
+    products[idx] = updatedProduct;
+    final nextStore = store.copyWith(products: products);
+    final updatedStores = Map<String, StoreProfile>.from(state.stores);
+    updatedStores[state.currentStoreId] = nextStore;
+    emit(state.copyWith(stores: updatedStores));
+
+    await _persistCloud(emit, (fs) async {
+      await fs.saveProduct(
+        currentStore: nextStore,
+        product: updatedProduct,
+        sortOrder: idx,
+        promoActive: state.promoActive,
+        openOverride: state.openOverride,
+      );
+    });
   }
 
-  void _onAdminUpdateProduct(
+  Future<void> _onAdminUpdateProduct(
       String productId,
       String? name,
       String? desc,
       int? price,
       int? originalPrice,
       bool clearDiscount,
-      Emitter<StoreState> emit) {
+      Emitter<StoreState> emit) async {
     final store = state.store;
     final products = List<Product>.from(store.products);
     final idx = products.indexWhere((p) => p.id == productId);
-    if (idx >= 0) {
-      var p = products[idx];
-      if (name != null) p = p.copyWith(name: name);
-      if (desc != null) p = p.copyWith(desc: desc);
-      if (price != null) p = p.copyWith(price: price);
-      if (clearDiscount) {
-        p = p.copyWith(originalPrice: null);
-      } else if (originalPrice != null) {
-        p = p.copyWith(originalPrice: originalPrice);
-      }
-      products[idx] = p;
-      final updatedStores = Map<String, StoreProfile>.from(state.stores);
-      updatedStores[state.currentStoreId] = store.copyWith(products: products);
-      emit(state.copyWith(stores: updatedStores));
+    if (idx < 0) return;
+
+    var p = products[idx];
+    if (name != null) p = p.copyWith(name: name);
+    if (desc != null) p = p.copyWith(desc: desc);
+    if (price != null) p = p.copyWith(price: price);
+    if (clearDiscount) {
+      p = p.copyWith(originalPrice: null);
+    } else if (originalPrice != null) {
+      p = p.copyWith(originalPrice: originalPrice);
     }
+    products[idx] = p;
+    final nextStore = store.copyWith(products: products);
+    final updatedStores = Map<String, StoreProfile>.from(state.stores);
+    updatedStores[state.currentStoreId] = nextStore;
+    emit(state.copyWith(stores: updatedStores));
+
+    await _persistCloud(emit, (fs) async {
+      await fs.saveProduct(
+        currentStore: nextStore,
+        product: p,
+        sortOrder: idx,
+        promoActive: state.promoActive,
+        openOverride: state.openOverride,
+      );
+    });
   }
 
   void _onAdminUpdateOrderStatus(
@@ -269,21 +555,37 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
     }
   }
 
-  void _onAdminToggleOpen(bool? openOverride, Emitter<StoreState> emit) {
+  Future<void> _onAdminToggleOpen(
+      bool? openOverride, Emitter<StoreState> emit) async {
     emit(state.copyWith(openOverride: openOverride));
+    await _persistCloud(emit, (fs) async {
+      await fs.saveStoreMetadata(
+        store: state.store,
+        promoActive: state.promoActive,
+        openOverride: openOverride,
+      );
+    });
   }
 
-  void _onAdminTogglePromo(bool active, Emitter<StoreState> emit) {
+  Future<void> _onAdminTogglePromo(
+      bool active, Emitter<StoreState> emit) async {
     emit(state.copyWith(promoActive: active));
+    await _persistCloud(emit, (fs) async {
+      await fs.saveStoreMetadata(
+        store: state.store,
+        promoActive: active,
+        openOverride: state.openOverride,
+      );
+    });
   }
 
-  void _onAdminUpdateStoreInfo(
+  Future<void> _onAdminUpdateStoreInfo(
       String? name,
       String? tagline,
       String? address,
       String? whatsapp,
       String? instagram,
-      Emitter<StoreState> emit) {
+      Emitter<StoreState> emit) async {
     var s = state.store;
     if (name != null && name.trim().isNotEmpty) {
       s = s.copyWith(name: name.trim());
@@ -298,46 +600,95 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
     final updatedStores = Map<String, StoreProfile>.from(state.stores);
     updatedStores[state.currentStoreId] = s;
     emit(state.copyWith(stores: updatedStores));
+
+    await _persistCloud(emit, (fs) async {
+      await fs.saveStoreMetadata(
+        store: s,
+        promoActive: state.promoActive,
+        openOverride: state.openOverride,
+      );
+    });
   }
 
-  void _onAdminAddProduct(Product product, Emitter<StoreState> emit) {
+  Future<void> _onAdminAddProduct(
+      Product product, Emitter<StoreState> emit) async {
     final store = state.store;
-    final products = List<Product>.from(store.products);
-    products.insert(0, product);
+    final products = List<Product>.from(store.products)..insert(0, product);
+    final nextStore = store.copyWith(products: products);
     final updatedStores = Map<String, StoreProfile>.from(state.stores);
-    updatedStores[state.currentStoreId] = store.copyWith(products: products);
+    updatedStores[state.currentStoreId] = nextStore;
     emit(state.copyWith(stores: updatedStores));
+
+    await _persistCloud(emit, (fs) async {
+      await fs.overwriteStoreWithSeed(
+        templateStore: nextStore,
+        promoActive: state.promoActive,
+        openOverride: state.openOverride,
+      );
+    });
   }
 
-  void _onAdminSaveProduct(Product product, Emitter<StoreState> emit) {
+  Future<void> _onAdminSaveProduct(
+      Product product, Emitter<StoreState> emit) async {
     final store = state.store;
     final products = List<Product>.from(store.products);
     final idx = products.indexWhere((p) => p.id == product.id);
+    final bool insertedNew = idx < 0;
     if (idx >= 0) {
       products[idx] = product;
     } else {
       products.insert(0, product);
     }
+    final nextStore = store.copyWith(products: products);
     final updatedStores = Map<String, StoreProfile>.from(state.stores);
-    updatedStores[state.currentStoreId] = store.copyWith(products: products);
+    updatedStores[state.currentStoreId] = nextStore;
     emit(state.copyWith(stores: updatedStores));
+
+    await _persistCloud(emit, (fs) async {
+      if (insertedNew) {
+        await fs.overwriteStoreWithSeed(
+          templateStore: nextStore,
+          promoActive: state.promoActive,
+          openOverride: state.openOverride,
+        );
+      } else {
+        await fs.saveProduct(
+          currentStore: nextStore,
+          product: product,
+          sortOrder: idx,
+          promoActive: state.promoActive,
+          openOverride: state.openOverride,
+        );
+      }
+    });
   }
 
-  void _onAdminDeleteProduct(String productId, Emitter<StoreState> emit) {
+  Future<void> _onAdminDeleteProduct(
+      String productId, Emitter<StoreState> emit) async {
     final store = state.store;
     final products = List<Product>.from(store.products)
       ..removeWhere((p) => p.id == productId);
+    final nextStore = store.copyWith(products: products);
     final updatedStores = Map<String, StoreProfile>.from(state.stores);
-    updatedStores[state.currentStoreId] = store.copyWith(products: products);
+    updatedStores[state.currentStoreId] = nextStore;
     emit(state.copyWith(stores: updatedStores));
+
+    await _persistCloud(emit, (fs) async {
+      await fs.deleteProduct(
+        currentStore: nextStore,
+        productId: productId,
+        promoActive: state.promoActive,
+        openOverride: state.openOverride,
+      );
+    });
   }
 
-  void _onAdminUpdatePromoBanner(
+  Future<void> _onAdminUpdatePromoBanner(
       String? title,
       String? desc,
       String? bannerImage,
       String? badge,
-      Emitter<StoreState> emit) {
+      Emitter<StoreState> emit) async {
     var s = state.store;
     if (bannerImage != null && bannerImage.trim().isNotEmpty) {
       s = s.copyWith(banner: bannerImage.trim());
@@ -356,6 +707,14 @@ class StoreBloc extends Bloc<StoreEvent, StoreState> {
     final updatedStores = Map<String, StoreProfile>.from(state.stores);
     updatedStores[state.currentStoreId] = s;
     emit(state.copyWith(stores: updatedStores));
+
+    await _persistCloud(emit, (fs) async {
+      await fs.saveStoreMetadata(
+        store: s,
+        promoActive: state.promoActive,
+        openOverride: state.openOverride,
+      );
+    });
   }
 
   static List<Order> _seedOrders(StoreProfile s) {

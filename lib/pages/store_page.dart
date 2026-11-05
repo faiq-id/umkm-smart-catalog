@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/store_bloc.dart';
 import '../bloc/store_event.dart';
 import '../bloc/store_state.dart';
+import '../config/app_config.dart';
 import '../models/models.dart';
 import '../sections/catalog.dart';
 import '../sections/footer.dart';
@@ -119,11 +120,12 @@ class _StorePageState extends State<StorePage> {
             children: [
               Column(
                 children: [
-                  RepaintBoundary(
-                    child: DemoBar(
-                        onAdmin: _openAdmin,
-                        onSwitched: () => scrollTo(NavSection.beranda)),
-                  ),
+                  if (AppConfig.isDemoShowcase)
+                    RepaintBoundary(
+                      child: DemoBar(
+                          onAdmin: _openAdmin,
+                          onSwitched: () => scrollTo(NavSection.beranda)),
+                    ),
                   RepaintBoundary(
                     child: ValueListenableBuilder<NavSection>(
                       valueListenable: _activeNotifier,

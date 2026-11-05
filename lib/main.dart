@@ -1,24 +1,38 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'bloc/store_bloc.dart';
 import 'bloc/store_state.dart';
+import 'config/firebase_options.dart';
 import 'pages/admin_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/store_page.dart';
 
-void main() {
-  runApp(const UmkmDemoApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  var firebaseReady = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    firebaseReady = true;
+  } catch (e) {
+    debugPrint('Firebase initialization skipped: $e');
+  }
+  runApp(UmkmDemoApp(enableCloudSync: firebaseReady));
 }
 
 class UmkmDemoApp extends StatelessWidget {
-  const UmkmDemoApp({super.key});
+  const UmkmDemoApp({super.key, this.enableCloudSync = true});
+
+  final bool enableCloudSync;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => StoreBloc(),
+      create: (_) => StoreBloc(enableCloudSync: enableCloudSync),
       child: BlocBuilder<StoreBloc, StoreState>(
         builder: (context, state) {
           final pal = state.store.palette;
@@ -39,16 +53,22 @@ class UmkmDemoApp extends StatelessWidget {
               textTheme: GoogleFonts.plusJakartaSansTextTheme(),
               splashFactory: InkSparkle.splashFactory,
               scrollbarTheme: ScrollbarThemeData(
-                thumbColor: WidgetStatePropertyAll(pal.outline.withValues(alpha: 0.4)),
+                thumbColor:
+                    WidgetStatePropertyAll(pal.outline.withValues(alpha: 0.4)),
                 radius: const Radius.circular(8),
                 thickness: const WidgetStatePropertyAll(6),
               ),
               switchTheme: SwitchThemeData(
-                thumbColor: WidgetStateProperty.resolveWith(
-                    (s) => s.contains(WidgetState.selected) ? Colors.white : pal.outline),
+                thumbColor: WidgetStateProperty.resolveWith((s) =>
+                    s.contains(WidgetState.selected)
+                        ? Colors.white
+                        : pal.outline),
                 trackColor: WidgetStateProperty.resolveWith((s) =>
-                    s.contains(WidgetState.selected) ? pal.secondary : pal.surfaceHigh),
-                trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+                    s.contains(WidgetState.selected)
+                        ? pal.secondary
+                        : pal.surfaceHigh),
+                trackOutlineColor:
+                    const WidgetStatePropertyAll(Colors.transparent),
               ),
             ),
             initialRoute: '/',

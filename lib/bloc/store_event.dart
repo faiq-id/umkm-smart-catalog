@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../models/models.dart';
+import '../services/firestore_service.dart';
 
 part 'store_event.freezed.dart';
 
@@ -68,4 +69,15 @@ abstract class StoreEvent with _$StoreEvent {
     String? bannerImage,
     String? badge,
   }) = _AdminUpdatePromoBanner;
+  const factory StoreEvent.remoteStoreSynced({
+    required String storeId,
+    required RemoteStoreDoc doc,
+  }) = _RemoteStoreSynced;
+  const factory StoreEvent.remoteProductsSynced({
+    required String storeId,
+    List<Product>? products,
+  }) = _RemoteProductsSynced;
+  const factory StoreEvent.remoteSyncFailed(String message) = _RemoteSyncFailed;
+  const factory StoreEvent.adminEnsureCloudSeeded() = _AdminEnsureCloudSeeded;
+  const factory StoreEvent.adminResetToTemplate() = _AdminResetToTemplate;
 }

@@ -21,6 +21,10 @@ abstract class StoreState with _$StoreState {
     bool? openOverride,
     String? tableNumber,
     @Default('Dine-in') String orderType,
+    @Default(false) bool cloudConnected,
+    @Default(false) bool cloudSeeded,
+    @Default(false) bool cloudSyncing,
+    String? cloudError,
   }) = _StoreState;
 
   StoreProfile get store => stores[currentStoreId]!;
@@ -81,4 +85,3 @@ abstract class StoreState with _$StoreState {
     }).toList();
   }
 }
-

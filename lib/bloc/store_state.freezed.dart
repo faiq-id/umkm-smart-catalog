@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StoreState {
 
- String get currentStoreId; Map<String, StoreProfile> get stores; Map<String, List<Order>> get orders; List<CartItem> get cart; String get searchQuery; String get selectedCategory; bool get availableOnly; bool get promoClaimed; bool get promoActive; bool? get openOverride; String? get tableNumber; String get orderType;
+ String get currentStoreId; Map<String, StoreProfile> get stores; Map<String, List<Order>> get orders; List<CartItem> get cart; String get searchQuery; String get selectedCategory; bool get availableOnly; bool get promoClaimed; bool get promoActive; bool? get openOverride; String? get tableNumber; String get orderType; bool get cloudConnected; bool get cloudSeeded; bool get cloudSyncing; String? get cloudError;
 /// Create a copy of StoreState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $StoreStateCopyWith<StoreState> get copyWith => _$StoreStateCopyWithImpl<StoreSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StoreState&&(identical(other.currentStoreId, currentStoreId) || other.currentStoreId == currentStoreId)&&const DeepCollectionEquality().equals(other.stores, stores)&&const DeepCollectionEquality().equals(other.orders, orders)&&const DeepCollectionEquality().equals(other.cart, cart)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory)&&(identical(other.availableOnly, availableOnly) || other.availableOnly == availableOnly)&&(identical(other.promoClaimed, promoClaimed) || other.promoClaimed == promoClaimed)&&(identical(other.promoActive, promoActive) || other.promoActive == promoActive)&&(identical(other.openOverride, openOverride) || other.openOverride == openOverride)&&(identical(other.tableNumber, tableNumber) || other.tableNumber == tableNumber)&&(identical(other.orderType, orderType) || other.orderType == orderType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StoreState&&(identical(other.currentStoreId, currentStoreId) || other.currentStoreId == currentStoreId)&&const DeepCollectionEquality().equals(other.stores, stores)&&const DeepCollectionEquality().equals(other.orders, orders)&&const DeepCollectionEquality().equals(other.cart, cart)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory)&&(identical(other.availableOnly, availableOnly) || other.availableOnly == availableOnly)&&(identical(other.promoClaimed, promoClaimed) || other.promoClaimed == promoClaimed)&&(identical(other.promoActive, promoActive) || other.promoActive == promoActive)&&(identical(other.openOverride, openOverride) || other.openOverride == openOverride)&&(identical(other.tableNumber, tableNumber) || other.tableNumber == tableNumber)&&(identical(other.orderType, orderType) || other.orderType == orderType)&&(identical(other.cloudConnected, cloudConnected) || other.cloudConnected == cloudConnected)&&(identical(other.cloudSeeded, cloudSeeded) || other.cloudSeeded == cloudSeeded)&&(identical(other.cloudSyncing, cloudSyncing) || other.cloudSyncing == cloudSyncing)&&(identical(other.cloudError, cloudError) || other.cloudError == cloudError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,currentStoreId,const DeepCollectionEquality().hash(stores),const DeepCollectionEquality().hash(orders),const DeepCollectionEquality().hash(cart),searchQuery,selectedCategory,availableOnly,promoClaimed,promoActive,openOverride,tableNumber,orderType);
+int get hashCode => Object.hash(runtimeType,currentStoreId,const DeepCollectionEquality().hash(stores),const DeepCollectionEquality().hash(orders),const DeepCollectionEquality().hash(cart),searchQuery,selectedCategory,availableOnly,promoClaimed,promoActive,openOverride,tableNumber,orderType,cloudConnected,cloudSeeded,cloudSyncing,cloudError);
 
 @override
 String toString() {
-  return 'StoreState(currentStoreId: $currentStoreId, stores: $stores, orders: $orders, cart: $cart, searchQuery: $searchQuery, selectedCategory: $selectedCategory, availableOnly: $availableOnly, promoClaimed: $promoClaimed, promoActive: $promoActive, openOverride: $openOverride, tableNumber: $tableNumber, orderType: $orderType)';
+  return 'StoreState(currentStoreId: $currentStoreId, stores: $stores, orders: $orders, cart: $cart, searchQuery: $searchQuery, selectedCategory: $selectedCategory, availableOnly: $availableOnly, promoClaimed: $promoClaimed, promoActive: $promoActive, openOverride: $openOverride, tableNumber: $tableNumber, orderType: $orderType, cloudConnected: $cloudConnected, cloudSeeded: $cloudSeeded, cloudSyncing: $cloudSyncing, cloudError: $cloudError)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $StoreStateCopyWith<$Res>  {
   factory $StoreStateCopyWith(StoreState value, $Res Function(StoreState) _then) = _$StoreStateCopyWithImpl;
 @useResult
 $Res call({
- String currentStoreId, Map<String, StoreProfile> stores, Map<String, List<Order>> orders, List<CartItem> cart, String searchQuery, String selectedCategory, bool availableOnly, bool promoClaimed, bool promoActive, bool? openOverride, String? tableNumber, String orderType
+ String currentStoreId, Map<String, StoreProfile> stores, Map<String, List<Order>> orders, List<CartItem> cart, String searchQuery, String selectedCategory, bool availableOnly, bool promoClaimed, bool promoActive, bool? openOverride, String? tableNumber, String orderType, bool cloudConnected, bool cloudSeeded, bool cloudSyncing, String? cloudError
 });
 
 
@@ -62,7 +62,7 @@ class _$StoreStateCopyWithImpl<$Res>
 
 /// Create a copy of StoreState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? currentStoreId = null,Object? stores = null,Object? orders = null,Object? cart = null,Object? searchQuery = null,Object? selectedCategory = null,Object? availableOnly = null,Object? promoClaimed = null,Object? promoActive = null,Object? openOverride = freezed,Object? tableNumber = freezed,Object? orderType = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? currentStoreId = null,Object? stores = null,Object? orders = null,Object? cart = null,Object? searchQuery = null,Object? selectedCategory = null,Object? availableOnly = null,Object? promoClaimed = null,Object? promoActive = null,Object? openOverride = freezed,Object? tableNumber = freezed,Object? orderType = null,Object? cloudConnected = null,Object? cloudSeeded = null,Object? cloudSyncing = null,Object? cloudError = freezed,}) {
   return _then(_self.copyWith(
 currentStoreId: null == currentStoreId ? _self.currentStoreId : currentStoreId // ignore: cast_nullable_to_non_nullable
 as String,stores: null == stores ? _self.stores : stores // ignore: cast_nullable_to_non_nullable
@@ -76,7 +76,11 @@ as bool,promoActive: null == promoActive ? _self.promoActive : promoActive // ig
 as bool,openOverride: freezed == openOverride ? _self.openOverride : openOverride // ignore: cast_nullable_to_non_nullable
 as bool?,tableNumber: freezed == tableNumber ? _self.tableNumber : tableNumber // ignore: cast_nullable_to_non_nullable
 as String?,orderType: null == orderType ? _self.orderType : orderType // ignore: cast_nullable_to_non_nullable
-as String,
+as String,cloudConnected: null == cloudConnected ? _self.cloudConnected : cloudConnected // ignore: cast_nullable_to_non_nullable
+as bool,cloudSeeded: null == cloudSeeded ? _self.cloudSeeded : cloudSeeded // ignore: cast_nullable_to_non_nullable
+as bool,cloudSyncing: null == cloudSyncing ? _self.cloudSyncing : cloudSyncing // ignore: cast_nullable_to_non_nullable
+as bool,cloudError: freezed == cloudError ? _self.cloudError : cloudError // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -161,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String currentStoreId,  Map<String, StoreProfile> stores,  Map<String, List<Order>> orders,  List<CartItem> cart,  String searchQuery,  String selectedCategory,  bool availableOnly,  bool promoClaimed,  bool promoActive,  bool? openOverride,  String? tableNumber,  String orderType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String currentStoreId,  Map<String, StoreProfile> stores,  Map<String, List<Order>> orders,  List<CartItem> cart,  String searchQuery,  String selectedCategory,  bool availableOnly,  bool promoClaimed,  bool promoActive,  bool? openOverride,  String? tableNumber,  String orderType,  bool cloudConnected,  bool cloudSeeded,  bool cloudSyncing,  String? cloudError)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StoreState() when $default != null:
-return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.searchQuery,_that.selectedCategory,_that.availableOnly,_that.promoClaimed,_that.promoActive,_that.openOverride,_that.tableNumber,_that.orderType);case _:
+return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.searchQuery,_that.selectedCategory,_that.availableOnly,_that.promoClaimed,_that.promoActive,_that.openOverride,_that.tableNumber,_that.orderType,_that.cloudConnected,_that.cloudSeeded,_that.cloudSyncing,_that.cloudError);case _:
   return orElse();
 
 }
@@ -182,10 +186,10 @@ return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String currentStoreId,  Map<String, StoreProfile> stores,  Map<String, List<Order>> orders,  List<CartItem> cart,  String searchQuery,  String selectedCategory,  bool availableOnly,  bool promoClaimed,  bool promoActive,  bool? openOverride,  String? tableNumber,  String orderType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String currentStoreId,  Map<String, StoreProfile> stores,  Map<String, List<Order>> orders,  List<CartItem> cart,  String searchQuery,  String selectedCategory,  bool availableOnly,  bool promoClaimed,  bool promoActive,  bool? openOverride,  String? tableNumber,  String orderType,  bool cloudConnected,  bool cloudSeeded,  bool cloudSyncing,  String? cloudError)  $default,) {final _that = this;
 switch (_that) {
 case _StoreState():
-return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.searchQuery,_that.selectedCategory,_that.availableOnly,_that.promoClaimed,_that.promoActive,_that.openOverride,_that.tableNumber,_that.orderType);case _:
+return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.searchQuery,_that.selectedCategory,_that.availableOnly,_that.promoClaimed,_that.promoActive,_that.openOverride,_that.tableNumber,_that.orderType,_that.cloudConnected,_that.cloudSeeded,_that.cloudSyncing,_that.cloudError);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +206,10 @@ return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String currentStoreId,  Map<String, StoreProfile> stores,  Map<String, List<Order>> orders,  List<CartItem> cart,  String searchQuery,  String selectedCategory,  bool availableOnly,  bool promoClaimed,  bool promoActive,  bool? openOverride,  String? tableNumber,  String orderType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String currentStoreId,  Map<String, StoreProfile> stores,  Map<String, List<Order>> orders,  List<CartItem> cart,  String searchQuery,  String selectedCategory,  bool availableOnly,  bool promoClaimed,  bool promoActive,  bool? openOverride,  String? tableNumber,  String orderType,  bool cloudConnected,  bool cloudSeeded,  bool cloudSyncing,  String? cloudError)?  $default,) {final _that = this;
 switch (_that) {
 case _StoreState() when $default != null:
-return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.searchQuery,_that.selectedCategory,_that.availableOnly,_that.promoClaimed,_that.promoActive,_that.openOverride,_that.tableNumber,_that.orderType);case _:
+return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.searchQuery,_that.selectedCategory,_that.availableOnly,_that.promoClaimed,_that.promoActive,_that.openOverride,_that.tableNumber,_that.orderType,_that.cloudConnected,_that.cloudSeeded,_that.cloudSyncing,_that.cloudError);case _:
   return null;
 
 }
@@ -217,7 +221,7 @@ return $default(_that.currentStoreId,_that.stores,_that.orders,_that.cart,_that.
 
 
 class _StoreState extends StoreState {
-  const _StoreState({required this.currentStoreId, required final  Map<String, StoreProfile> stores, required final  Map<String, List<Order>> orders, final  List<CartItem> cart = const [], this.searchQuery = '', this.selectedCategory = 'all', this.availableOnly = false, this.promoClaimed = false, this.promoActive = true, this.openOverride, this.tableNumber, this.orderType = 'Dine-in'}): _stores = stores,_orders = orders,_cart = cart,super._();
+  const _StoreState({required this.currentStoreId, required final  Map<String, StoreProfile> stores, required final  Map<String, List<Order>> orders, final  List<CartItem> cart = const [], this.searchQuery = '', this.selectedCategory = 'all', this.availableOnly = false, this.promoClaimed = false, this.promoActive = true, this.openOverride, this.tableNumber, this.orderType = 'Dine-in', this.cloudConnected = false, this.cloudSeeded = false, this.cloudSyncing = false, this.cloudError}): _stores = stores,_orders = orders,_cart = cart,super._();
   
 
 @override final  String currentStoreId;
@@ -250,6 +254,10 @@ class _StoreState extends StoreState {
 @override final  bool? openOverride;
 @override final  String? tableNumber;
 @override@JsonKey() final  String orderType;
+@override@JsonKey() final  bool cloudConnected;
+@override@JsonKey() final  bool cloudSeeded;
+@override@JsonKey() final  bool cloudSyncing;
+@override final  String? cloudError;
 
 /// Create a copy of StoreState
 /// with the given fields replaced by the non-null parameter values.
@@ -261,16 +269,16 @@ _$StoreStateCopyWith<_StoreState> get copyWith => __$StoreStateCopyWithImpl<_Sto
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StoreState&&(identical(other.currentStoreId, currentStoreId) || other.currentStoreId == currentStoreId)&&const DeepCollectionEquality().equals(other._stores, _stores)&&const DeepCollectionEquality().equals(other._orders, _orders)&&const DeepCollectionEquality().equals(other._cart, _cart)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory)&&(identical(other.availableOnly, availableOnly) || other.availableOnly == availableOnly)&&(identical(other.promoClaimed, promoClaimed) || other.promoClaimed == promoClaimed)&&(identical(other.promoActive, promoActive) || other.promoActive == promoActive)&&(identical(other.openOverride, openOverride) || other.openOverride == openOverride)&&(identical(other.tableNumber, tableNumber) || other.tableNumber == tableNumber)&&(identical(other.orderType, orderType) || other.orderType == orderType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StoreState&&(identical(other.currentStoreId, currentStoreId) || other.currentStoreId == currentStoreId)&&const DeepCollectionEquality().equals(other._stores, _stores)&&const DeepCollectionEquality().equals(other._orders, _orders)&&const DeepCollectionEquality().equals(other._cart, _cart)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory)&&(identical(other.availableOnly, availableOnly) || other.availableOnly == availableOnly)&&(identical(other.promoClaimed, promoClaimed) || other.promoClaimed == promoClaimed)&&(identical(other.promoActive, promoActive) || other.promoActive == promoActive)&&(identical(other.openOverride, openOverride) || other.openOverride == openOverride)&&(identical(other.tableNumber, tableNumber) || other.tableNumber == tableNumber)&&(identical(other.orderType, orderType) || other.orderType == orderType)&&(identical(other.cloudConnected, cloudConnected) || other.cloudConnected == cloudConnected)&&(identical(other.cloudSeeded, cloudSeeded) || other.cloudSeeded == cloudSeeded)&&(identical(other.cloudSyncing, cloudSyncing) || other.cloudSyncing == cloudSyncing)&&(identical(other.cloudError, cloudError) || other.cloudError == cloudError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,currentStoreId,const DeepCollectionEquality().hash(_stores),const DeepCollectionEquality().hash(_orders),const DeepCollectionEquality().hash(_cart),searchQuery,selectedCategory,availableOnly,promoClaimed,promoActive,openOverride,tableNumber,orderType);
+int get hashCode => Object.hash(runtimeType,currentStoreId,const DeepCollectionEquality().hash(_stores),const DeepCollectionEquality().hash(_orders),const DeepCollectionEquality().hash(_cart),searchQuery,selectedCategory,availableOnly,promoClaimed,promoActive,openOverride,tableNumber,orderType,cloudConnected,cloudSeeded,cloudSyncing,cloudError);
 
 @override
 String toString() {
-  return 'StoreState(currentStoreId: $currentStoreId, stores: $stores, orders: $orders, cart: $cart, searchQuery: $searchQuery, selectedCategory: $selectedCategory, availableOnly: $availableOnly, promoClaimed: $promoClaimed, promoActive: $promoActive, openOverride: $openOverride, tableNumber: $tableNumber, orderType: $orderType)';
+  return 'StoreState(currentStoreId: $currentStoreId, stores: $stores, orders: $orders, cart: $cart, searchQuery: $searchQuery, selectedCategory: $selectedCategory, availableOnly: $availableOnly, promoClaimed: $promoClaimed, promoActive: $promoActive, openOverride: $openOverride, tableNumber: $tableNumber, orderType: $orderType, cloudConnected: $cloudConnected, cloudSeeded: $cloudSeeded, cloudSyncing: $cloudSyncing, cloudError: $cloudError)';
 }
 
 
@@ -281,7 +289,7 @@ abstract mixin class _$StoreStateCopyWith<$Res> implements $StoreStateCopyWith<$
   factory _$StoreStateCopyWith(_StoreState value, $Res Function(_StoreState) _then) = __$StoreStateCopyWithImpl;
 @override @useResult
 $Res call({
- String currentStoreId, Map<String, StoreProfile> stores, Map<String, List<Order>> orders, List<CartItem> cart, String searchQuery, String selectedCategory, bool availableOnly, bool promoClaimed, bool promoActive, bool? openOverride, String? tableNumber, String orderType
+ String currentStoreId, Map<String, StoreProfile> stores, Map<String, List<Order>> orders, List<CartItem> cart, String searchQuery, String selectedCategory, bool availableOnly, bool promoClaimed, bool promoActive, bool? openOverride, String? tableNumber, String orderType, bool cloudConnected, bool cloudSeeded, bool cloudSyncing, String? cloudError
 });
 
 
@@ -298,7 +306,7 @@ class __$StoreStateCopyWithImpl<$Res>
 
 /// Create a copy of StoreState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? currentStoreId = null,Object? stores = null,Object? orders = null,Object? cart = null,Object? searchQuery = null,Object? selectedCategory = null,Object? availableOnly = null,Object? promoClaimed = null,Object? promoActive = null,Object? openOverride = freezed,Object? tableNumber = freezed,Object? orderType = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? currentStoreId = null,Object? stores = null,Object? orders = null,Object? cart = null,Object? searchQuery = null,Object? selectedCategory = null,Object? availableOnly = null,Object? promoClaimed = null,Object? promoActive = null,Object? openOverride = freezed,Object? tableNumber = freezed,Object? orderType = null,Object? cloudConnected = null,Object? cloudSeeded = null,Object? cloudSyncing = null,Object? cloudError = freezed,}) {
   return _then(_StoreState(
 currentStoreId: null == currentStoreId ? _self.currentStoreId : currentStoreId // ignore: cast_nullable_to_non_nullable
 as String,stores: null == stores ? _self._stores : stores // ignore: cast_nullable_to_non_nullable
@@ -312,7 +320,11 @@ as bool,promoActive: null == promoActive ? _self.promoActive : promoActive // ig
 as bool,openOverride: freezed == openOverride ? _self.openOverride : openOverride // ignore: cast_nullable_to_non_nullable
 as bool?,tableNumber: freezed == tableNumber ? _self.tableNumber : tableNumber // ignore: cast_nullable_to_non_nullable
 as String?,orderType: null == orderType ? _self.orderType : orderType // ignore: cast_nullable_to_non_nullable
-as String,
+as String,cloudConnected: null == cloudConnected ? _self.cloudConnected : cloudConnected // ignore: cast_nullable_to_non_nullable
+as bool,cloudSeeded: null == cloudSeeded ? _self.cloudSeeded : cloudSeeded // ignore: cast_nullable_to_non_nullable
+as bool,cloudSyncing: null == cloudSyncing ? _self.cloudSyncing : cloudSyncing // ignore: cast_nullable_to_non_nullable
+as bool,cloudError: freezed == cloudError ? _self.cloudError : cloudError // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

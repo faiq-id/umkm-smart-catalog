@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,9 +6,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/store_bloc.dart';
 import '../bloc/store_event.dart';
 import '../bloc/store_state.dart';
+import '../config/app_config.dart';
 import '../models/models.dart';
+import '../services/auth_service.dart';
 import '../ui/common.dart';
 import '../utils/format.dart';
+import 'admin_login_page.dart';
 
 enum AdminSection {
   ringkasan,
@@ -20,28 +24,108 @@ enum AdminSection {
 }
 
 class AdminPage extends StatefulWidget {
-  const AdminPage({super.key});
+  const AdminPage({super.key, this.authService});
+
+  final AuthService? authService;
 
   @override
   State<AdminPage> createState() => _AdminPageState();
 }
 
 class _AdminPageState extends State<AdminPage> {
+  late final AuthService _authService = widget.authService ?? AuthService();
+  bool _guestPreview = false;
+  String? _seededForStoreKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: _authService.authStateChanges,
+      initialData: _authService.currentUser,
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        if (user != null) {
+          final currentStoreId = context.read<StoreBloc>().state.currentStoreId;
+          final seedKey = '${user.uid}:$currentStoreId';
+          if (_seededForStoreKey != seedKey) {
+            _seededForStoreKey = seedKey;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                context
+                    .read<StoreBloc>()
+                    .add(const StoreEvent.adminEnsureCloudSeeded());
+              }
+            });
+          }
+          return _AdminDashboardView(
+            isGuestPreview: false,
+            userEmail: user.email,
+            onSignOut: () async {
+              await _authService.signOut();
+              if (context.mounted) {
+                showToast(context, 'Anda telah keluar dari Panel Admin',
+                    icon: Icons.logout_rounded);
+              }
+            },
+          );
+        }
+
+        if (_guestPreview && AppConfig.canUseGuestPreview) {
+          return _AdminDashboardView(
+            isGuestPreview: true,
+            userEmail: null,
+            onSignOut: () => setState(() => _guestPreview = false),
+          );
+        }
+
+        return AdminLoginPage(
+          authService: _authService,
+          onGuestPreview: AppConfig.canUseGuestPreview
+              ? () => setState(() => _guestPreview = true)
+              : null,
+        );
+      },
+    );
+  }
+}
+
+class _AdminDashboardView extends StatefulWidget {
+  const _AdminDashboardView({
+    required this.isGuestPreview,
+    required this.userEmail,
+    required this.onSignOut,
+  });
+
+  final bool isGuestPreview;
+  final String? userEmail;
+  final VoidCallback onSignOut;
+
+  @override
+  State<_AdminDashboardView> createState() => _AdminDashboardViewState();
+}
+
+class _AdminDashboardViewState extends State<_AdminDashboardView> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   AdminSection _section = AdminSection.ringkasan;
   String _tableFilter = 'all'; // 'all' | 'available' | 'soldout'
   String _searchQuery = '';
+  String? _loadedStoreId;
 
   late final TextEditingController _waCtrl;
   late final TextEditingController _announcementCtrl;
   late final TextEditingController _bannerImageCtrl;
   late final TextEditingController _searchCtrl;
+  late final TextEditingController _storeNameCtrl;
+  late final TextEditingController _storeTaglineCtrl;
+  late final TextEditingController _storeAddressCtrl;
+  late final TextEditingController _storeIgCtrl;
 
   @override
   void initState() {
     super.initState();
     final state = context.read<StoreBloc>().state;
     final store = state.store;
+    _loadedStoreId = state.currentStoreId;
     _waCtrl = TextEditingController(
       text: store.whatsapp.isNotEmpty ? store.whatsapp : '+62 812-3456-7890',
     );
@@ -52,6 +136,23 @@ class _AdminPageState extends State<AdminPage> {
       text: store.banner,
     );
     _searchCtrl = TextEditingController();
+    _storeNameCtrl = TextEditingController(text: store.name);
+    _storeTaglineCtrl = TextEditingController(text: store.tagline);
+    _storeAddressCtrl = TextEditingController(text: store.address);
+    _storeIgCtrl = TextEditingController(text: store.instagram);
+  }
+
+  void _syncControllersForStore(StoreState state) {
+    if (_loadedStoreId == state.currentStoreId) return;
+    _loadedStoreId = state.currentStoreId;
+    final store = state.store;
+    _waCtrl.text = store.whatsapp;
+    _announcementCtrl.text = store.promo.title;
+    _bannerImageCtrl.text = store.banner;
+    _storeNameCtrl.text = store.name;
+    _storeTaglineCtrl.text = store.tagline;
+    _storeAddressCtrl.text = store.address;
+    _storeIgCtrl.text = store.instagram;
   }
 
   @override
@@ -60,6 +161,10 @@ class _AdminPageState extends State<AdminPage> {
     _announcementCtrl.dispose();
     _bannerImageCtrl.dispose();
     _searchCtrl.dispose();
+    _storeNameCtrl.dispose();
+    _storeTaglineCtrl.dispose();
+    _storeAddressCtrl.dispose();
+    _storeIgCtrl.dispose();
     super.dispose();
   }
 
@@ -123,12 +228,16 @@ class _AdminPageState extends State<AdminPage> {
 
     return BlocBuilder<StoreBloc, StoreState>(
       builder: (context, state) {
+        _syncControllersForStore(state);
         final store = state.store;
         final pal = store.palette;
 
         final sidebar = _AdminSidebar(
           store: store,
           activeSection: _section,
+          isGuestPreview: widget.isGuestPreview,
+          userEmail: widget.userEmail,
+          onSignOut: widget.onSignOut,
           onSelect: (sec) {
             setState(() => _section = sec);
             if (!wide && _scaffoldKey.currentState?.isDrawerOpen == true) {
@@ -153,6 +262,48 @@ class _AdminPageState extends State<AdminPage> {
                       onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
                       onViewStore: () => Navigator.of(context).pop(),
                     ),
+                    if (widget.isGuestPreview)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        color: pal.secondarySoft,
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 12,
+                          runSpacing: 6,
+                          children: [
+                            Text(
+                              'Mode Simulasi Tamu — Perubahan hanya berlaku di browser Anda. Masuk sebagai Admin untuk menyimpan ke server.',
+                              style: Txt.sans(12,
+                                  weight: FontWeight.w600, color: pal.primary),
+                            ),
+                            InkWell(
+                              onTap: widget.onSignOut,
+                              child: Text(
+                                'Masuk Admin →',
+                                style: Txt.sans(12,
+                                    weight: FontWeight.w800,
+                                    color: pal.secondary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (state.cloudError != null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        color: const Color(0xFFFFE4E6),
+                        child: Text(
+                          'Sinkronisasi server tertunda: pastikan aturan keamanan (firestore.rules) sudah dipublikasikan di Firebase Console. (${state.cloudError})',
+                          style: Txt.sans(12,
+                              weight: FontWeight.w600,
+                              color: const Color(0xFF9F1239)),
+                        ),
+                      ),
                     Expanded(
                       child: SingleChildScrollView(
                         child: _buildBody(context, state, store, pal),
@@ -195,7 +346,7 @@ class _AdminPageState extends State<AdminPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Header & Quick Action Bar
-              _buildTopBar(store, pal),
+              _buildTopBar(state, store, pal),
               const SizedBox(height: 28),
 
               // 2. Ringkasan Statistik KPI
@@ -219,8 +370,19 @@ class _AdminPageState extends State<AdminPage> {
   // ---------------------------------------------------------------------------
   // 1. Header & Quick Action Bar
   // ---------------------------------------------------------------------------
-  Widget _buildTopBar(StoreProfile store, StorePalette pal) {
+  Widget _buildTopBar(StoreState state, StoreProfile store, StorePalette pal) {
     final mobile = Bp.mobile(context);
+    final statusLabel = widget.isGuestPreview
+        ? 'Mode Simulasi Tamu (Lokal)'
+        : (state.cloudSyncing
+            ? 'Menyimpan ke Cloud...'
+            : 'Cloud Live • Tersimpan Otomatis');
+    final statusBg = widget.isGuestPreview
+        ? pal.surfaceHigh
+        : const Color(0xFFD1FAE5);
+    final statusFg = widget.isGuestPreview
+        ? pal.onSurfaceVariant
+        : const Color(0xFF065F46);
 
     return Wrap(
       alignment: WrapAlignment.spaceBetween,
@@ -234,6 +396,7 @@ class _AdminPageState extends State<AdminPage> {
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               spacing: 10,
+              runSpacing: 6,
               children: [
                 Text(
                   'ATELIER COMMAND CENTER',
@@ -249,16 +412,24 @@ class _AdminPageState extends State<AdminPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: pal.surfaceHigh,
+                    color: statusBg,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Icon(
+                        widget.isGuestPreview
+                            ? Icons.visibility_outlined
+                            : Icons.cloud_done_outlined,
+                        size: 13,
+                        color: statusFg,
+                      ),
+                      const SizedBox(width: 5),
                       Text(
-                        'Mode Pratinjau Lokal',
+                        statusLabel,
                         style: Txt.sans(11.5,
-                            weight: FontWeight.w600, color: pal.onSurfaceVariant),
+                            weight: FontWeight.w700, color: statusFg),
                       ),
                     ],
                   ),
@@ -2690,28 +2861,121 @@ class _AdminPageState extends State<AdminPage> {
                     Text('Nama Gerai',
                         style: Txt.sans(13, weight: FontWeight.w600)),
                     const SizedBox(height: 6),
-                    TextField(
-                      controller: TextEditingController(text: store.name),
-                      onSubmitted: (v) => context.read<StoreBloc>().add(
-                          StoreEvent.adminUpdateStoreInfo(name: v)),
-                    ),
+                    TextField(controller: _storeNameCtrl),
                     const SizedBox(height: 18),
                     Text('Tagline / Slogan',
                         style: Txt.sans(13, weight: FontWeight.w600)),
                     const SizedBox(height: 6),
-                    TextField(
-                      controller: TextEditingController(text: store.tagline),
-                      onSubmitted: (v) => context.read<StoreBloc>().add(
-                          StoreEvent.adminUpdateStoreInfo(tagline: v)),
-                    ),
+                    TextField(controller: _storeTaglineCtrl),
                     const SizedBox(height: 18),
                     Text('Alamat Fisik',
                         style: Txt.sans(13, weight: FontWeight.w600)),
                     const SizedBox(height: 6),
-                    TextField(
-                      controller: TextEditingController(text: store.address),
-                      onSubmitted: (v) => context.read<StoreBloc>().add(
-                          StoreEvent.adminUpdateStoreInfo(address: v)),
+                    TextField(controller: _storeAddressCtrl),
+                    const SizedBox(height: 18),
+                    Text('Nomor WhatsApp Pesanan',
+                        style: Txt.sans(13, weight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    TextField(controller: _waCtrl),
+                    const SizedBox(height: 18),
+                    Text('Instagram (@username)',
+                        style: Txt.sans(13, weight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    TextField(controller: _storeIgCtrl),
+                    const SizedBox(height: 22),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: PillButton(
+                        label: 'Simpan Profil Gerai',
+                        icon: Icons.check_circle_outline_rounded,
+                        bg: pal.primary,
+                        hoverBg: pal.primaryContainer,
+                        fg: Colors.white,
+                        fontSize: 13,
+                        shadow: true,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 11),
+                        onTap: () {
+                          context.read<StoreBloc>().add(
+                                StoreEvent.adminUpdateStoreInfo(
+                                  name: _storeNameCtrl.text.trim(),
+                                  tagline: _storeTaglineCtrl.text.trim(),
+                                  address: _storeAddressCtrl.text.trim(),
+                                  whatsapp: _waCtrl.text.trim(),
+                                  instagram: _storeIgCtrl.text.trim(),
+                                ),
+                              );
+                          showToast(
+                            context,
+                            widget.isGuestPreview
+                                ? 'Profil gerai diperbarui (simulasi lokal)'
+                                : 'Profil gerai berhasil disimpan ke Cloud!',
+                            icon: Icons.cloud_done_outlined,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: cardDecoration(pal, radius: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Database & Reset Template',
+                        style: Txt.serif(20,
+                            weight: FontWeight.w600, color: pal.primary)),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Gunakan tombol ini setelah sesi demo ke klien untuk mengembalikan katalog, harga, dan stok ${store.shortName} ke data bawaan awal.',
+                      style: Txt.sans(13,
+                          color: pal.onSurfaceVariant, height: 1.45),
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        PillButton(
+                          label: 'Reset Katalog ke Data Awal',
+                          icon: Icons.restart_alt_rounded,
+                          bg: pal.surfaceContainer,
+                          hoverBg: pal.surfaceHigh,
+                          fg: pal.primary,
+                          border: pal.outlineVariant,
+                          fontSize: 12.5,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 11),
+                          onTap: () {
+                            context
+                                .read<StoreBloc>()
+                                .add(const StoreEvent.adminResetToTemplate());
+                            showToast(
+                              context,
+                              'Katalog ${store.shortName} dikembalikan ke data awal!',
+                              icon: Icons.restart_alt_rounded,
+                            );
+                          },
+                        ),
+                        PillButton(
+                          label: widget.isGuestPreview
+                              ? 'Masuk Akun Admin'
+                              : 'Keluar (Logout)',
+                          icon: widget.isGuestPreview
+                              ? Icons.login_rounded
+                              : Icons.logout_rounded,
+                          bg: const Color(0xFFFFE4E6),
+                          hoverBg: const Color(0xFFFECDD3),
+                          fg: const Color(0xFF9F1239),
+                          fontSize: 12.5,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 11),
+                          onTap: widget.onSignOut,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -2786,11 +3050,17 @@ class _AdminSidebar extends StatelessWidget {
   const _AdminSidebar({
     required this.store,
     required this.activeSection,
+    required this.isGuestPreview,
+    required this.userEmail,
+    required this.onSignOut,
     required this.onSelect,
   });
 
   final StoreProfile store;
   final AdminSection activeSection;
+  final bool isGuestPreview;
+  final String? userEmail;
+  final VoidCallback onSignOut;
   final ValueChanged<AdminSection> onSelect;
 
   @override
@@ -2855,12 +3125,22 @@ class _AdminSidebar extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  PulseDot(color: pal.secondary, size: 8),
+                  PulseDot(
+                    color: isGuestPreview
+                        ? pal.outline
+                        : const Color(0xFF059669),
+                    size: 8,
+                  ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Mode Admin Aktif',
-                    style: Txt.sans(12,
-                        weight: FontWeight.w700, color: pal.primary),
+                  Expanded(
+                    child: Text(
+                      isGuestPreview
+                          ? 'Simulasi Tamu'
+                          : 'Admin Cloud Aktif',
+                      overflow: TextOverflow.ellipsis,
+                      style: Txt.sans(12,
+                          weight: FontWeight.w700, color: pal.primary),
+                    ),
                   ),
                 ],
               ),
@@ -2963,24 +3243,46 @@ class _AdminSidebar extends StatelessWidget {
                       color: pal.primary,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.person_rounded,
-                        size: 18, color: Colors.white),
+                    child: Icon(
+                      isGuestPreview
+                          ? Icons.visibility_outlined
+                          : Icons.verified_user_rounded,
+                      size: 17,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Pengelola Gerai',
-                            style: Txt.sans(12.5,
-                                weight: FontWeight.w700, color: pal.primary)),
-                        Text('Owner • ${store.shortName}',
-                            style: Txt.sans(11, color: pal.onSurfaceVariant)),
+                        Text(
+                          isGuestPreview ? 'Pratinjau Tamu' : 'Admin Resmi',
+                          style: Txt.sans(12.5,
+                              weight: FontWeight.w700, color: pal.primary),
+                        ),
+                        Text(
+                          userEmail ?? 'Simulasi • ${store.shortName}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Txt.sans(11, color: pal.onSurfaceVariant),
+                        ),
                       ],
                     ),
                   ),
-                  Icon(Icons.lock_open_rounded,
-                      size: 18, color: pal.onSurfaceVariant),
+                  IconButton(
+                    tooltip: isGuestPreview
+                        ? 'Masuk Akun Admin'
+                        : 'Keluar dari Admin',
+                    onPressed: onSignOut,
+                    icon: Icon(
+                      isGuestPreview
+                          ? Icons.login_rounded
+                          : Icons.logout_rounded,
+                      size: 18,
+                      color: pal.primary,
+                    ),
+                  ),
                 ],
               ),
             ),
