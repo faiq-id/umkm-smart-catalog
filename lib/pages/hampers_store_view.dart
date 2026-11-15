@@ -1741,88 +1741,79 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Top Verified Badges Row (Full Width Space-Between)
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.only(bottom: mobile ? 16 : 22),
-                      margin: EdgeInsets.only(bottom: mobile ? 22 : 34),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: _kGoldAccent.withValues(alpha: 0.18),
+                    // Top Verified Badges Row (Desktop Only to keep Mobile ultra-clean and uncluttered)
+                    if (!mobile)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.only(bottom: 22),
+                        margin: const EdgeInsets.only(bottom: 34),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: _kGoldAccent.withValues(alpha: 0.18),
+                            ),
                           ),
                         ),
-                      ),
-                      child: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: mobile ? 8 : 12,
-                        runSpacing: mobile ? 8 : 10,
-                        children: [
-                          Wrap(
-                            spacing: mobile ? 6 : 10,
-                            runSpacing: mobile ? 6 : 8,
-                            children: [
-                              const _HeroTopBadge(
-                                icon: Icons.verified_user_outlined,
-                                label: 'Terbit Faktur Pajak PPN 11%',
-                                fg: _kTertiaryFixed,
-                              ),
-                              _HeroTopBadge(
-                                icon: Icons.receipt_long_outlined,
-                                label: 'Kuitansi Bermeterai Resmi',
-                                fg: Colors.white.withValues(alpha: 0.9),
-                              ),
-                              if (!mobile)
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Wrap(
+                              spacing: 10,
+                              children: [
+                                const _HeroTopBadge(
+                                  icon: Icons.verified_user_outlined,
+                                  label: 'Terbit Faktur Pajak PPN 11%',
+                                  fg: _kTertiaryFixed,
+                                ),
+                                _HeroTopBadge(
+                                  icon: Icons.receipt_long_outlined,
+                                  label: 'Kuitansi Bermeterai Resmi',
+                                  fg: Colors.white.withValues(alpha: 0.9),
+                                ),
                                 _HeroTopBadge(
                                   icon: Icons.local_shipping_outlined,
                                   label: 'Minimum Grosir Mulai 10 Box',
                                   fg: Colors.white.withValues(alpha: 0.9),
                                 ),
-                            ],
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: mobile ? 11 : 14,
-                                vertical: mobile ? 5 : 6),
-                            decoration: BoxDecoration(
-                              color: _kGoldDark.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: _kGoldAccent.withValues(alpha: 0.55),
-                              ),
+                              ],
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _isEid
-                                      ? Icons.nights_stay_rounded
-                                      : Icons.auto_awesome_rounded,
-                                  size: mobile ? 13 : 14,
-                                  color: _kTertiaryFixed,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: _kGoldDark.withValues(alpha: 0.25),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: _kGoldAccent.withValues(alpha: 0.55),
                                 ),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _isEid
+                                        ? Icons.nights_stay_rounded
+                                        : Icons.auto_awesome_rounded,
+                                    size: 14,
+                                    color: _kTertiaryFixed,
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Text(
                                     _isEid
                                         ? 'Distribusi Lebaran: H-14 s/d H-5 Idul Fitri'
                                         : 'Distribusi Tahun Baru: 20–30 Desember 2026',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                     style: _jakarta(
-                                      mobile ? 10.5 : 11.5,
+                                      11.5,
                                       weight: FontWeight.w600,
                                       color: _kTertiaryFixed,
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
 
                     // Hero Grid (7 cols text + 5 cols image)
                     if (isDesktop)
@@ -2132,6 +2123,26 @@ class _HampersStoreViewState extends State<HampersStoreView> {
             ],
           ),
         ),
+        if (mobile)
+          Padding(
+            padding: const EdgeInsets.only(top: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.verified_user_outlined,
+                    size: 13, color: _kTertiaryFixed),
+                const SizedBox(width: 6),
+                Text(
+                  'Resmi PKP  •  Faktur Pajak PPN 11%  •  Kuitansi Bermeterai',
+                  style: _jakarta(
+                    10.5,
+                    weight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -5809,9 +5820,9 @@ class _CornerRibbonPainter extends CustomPainter {
       oldDelegate.label != label || oldDelegate.isGold != isGold;
 }
 
-/// Custom Painter for the New Year 2025 Hero Celebration Backdrop:
-/// Draws golden fireworks bursts, subtle city skyline silhouette, glowing "2025"
-/// numerals, and champagne-gold confetti/streamers at 0ms scroll overhead.
+/// Custom Painter for the New Year Hero Celebration Backdrop:
+/// Draws subtle ambient gold radial lighting, clean city skyline silhouette,
+/// and delicate corner sparkles. Zero overlapping watermark text for absolute clarity.
 class _NewYearHeroBackdropPainter extends CustomPainter {
   const _NewYearHeroBackdropPainter({this.cormorantFamily});
 
@@ -5821,36 +5832,37 @@ class _NewYearHeroBackdropPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
+    final mobile = w < 640;
 
-    // 1. Ambient Champagne Gold Radial Glows
+    // 1. Ambient Champagne Gold Radial Glows (Soft luxury vignette)
     final leftGlow = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFFE3BE80).withValues(alpha: 0.14),
+          const Color(0xFFE3BE80).withValues(alpha: mobile ? 0.09 : 0.14),
           const Color(0xFFE3BE80).withValues(alpha: 0.0),
         ],
       ).createShader(
-        Rect.fromCircle(center: Offset(w * 0.18, h * 0.22), radius: 340),
+        Rect.fromCircle(center: Offset(w * 0.15, h * 0.18), radius: 340),
       );
-    canvas.drawCircle(Offset(w * 0.18, h * 0.22), 340, leftGlow);
+    canvas.drawCircle(Offset(w * 0.15, h * 0.18), 340, leftGlow);
 
     final rightGlow = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFFD4B37A).withValues(alpha: 0.18),
+          const Color(0xFFD4B37A).withValues(alpha: mobile ? 0.11 : 0.16),
           const Color(0xFFD4B37A).withValues(alpha: 0.0),
         ],
       ).createShader(
-        Rect.fromCircle(center: Offset(w * 0.78, h * 0.32), radius: 380),
+        Rect.fromCircle(center: Offset(w * 0.82, h * 0.28), radius: 380),
       );
-    canvas.drawCircle(Offset(w * 0.78, h * 0.32), 380, rightGlow);
+    canvas.drawCircle(Offset(w * 0.82, h * 0.28), 380, rightGlow);
 
     // 2. Subtle City Skyline Silhouette at Bottom of Hero
     final skylinePaint = Paint()
-      ..color = const Color(0xFF04070D).withValues(alpha: 0.55)
+      ..color = const Color(0xFF04070D).withValues(alpha: 0.45)
       ..style = PaintingStyle.fill;
     final skylineStroke = Paint()
-      ..color = const Color(0xFFD4B37A).withValues(alpha: 0.12)
+      ..color = const Color(0xFFD4B37A).withValues(alpha: 0.10)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -5879,119 +5891,48 @@ class _NewYearHeroBackdropPainter extends CustomPainter {
     canvas.drawPath(skylinePath, skylinePaint);
     canvas.drawPath(skylinePath, skylineStroke);
 
-    // 3. Subtle Glowing "2027" Watermark Numerals in Center-Right Sky
-    final tp2027 = TextPainter(
-      text: TextSpan(
-        text: '2027',
-        style: TextStyle(
-          fontFamily: cormorantFamily,
-          fontSize: w >= 900 ? 150 : 96,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 6,
-          foreground: Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.4
-            ..color = const Color(0xFFE3BE80).withValues(alpha: 0.16),
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp2027.paint(
-      canvas,
-      Offset(w * 0.46 - tp2027.width / 2, h * 0.16),
-    );
+    // 3. Desktop-only gentle corner fireworks (positioned far from text columns)
+    if (!mobile) {
+      _drawFireworkBurst(
+        canvas,
+        center: Offset(w * 0.08, h * 0.12),
+        radius: 64,
+        rays: 20,
+        alpha: 0.20,
+      );
+      _drawFireworkBurst(
+        canvas,
+        center: Offset(w * 0.92, h * 0.14),
+        radius: 72,
+        rays: 24,
+        alpha: 0.22,
+      );
+    }
 
-    // 4. Golden Fireworks Bursts in the Night Sky
-    _drawFireworkBurst(
-      canvas,
-      center: Offset(w * 0.12, h * 0.18),
-      radius: 68,
-      rays: 24,
-      alpha: 0.38,
-    );
-    _drawFireworkBurst(
-      canvas,
-      center: Offset(w * 0.48, h * 0.14),
-      radius: 84,
-      rays: 28,
-      alpha: 0.42,
-    );
-    _drawFireworkBurst(
-      canvas,
-      center: Offset(w * 0.88, h * 0.16),
-      radius: 76,
-      rays: 26,
-      alpha: 0.36,
-    );
-    _drawFireworkBurst(
-      canvas,
-      center: Offset(w * 0.55, h * 0.62),
-      radius: 54,
-      rays: 20,
-      alpha: 0.28,
-    );
-    _drawFireworkBurst(
-      canvas,
-      center: Offset(w * 0.06, h * 0.68),
-      radius: 48,
-      rays: 18,
-      alpha: 0.25,
-    );
-
-    // 5. Champagne Gold Sparkles & Confetti Dots
+    // 4. Fine Champagne Gold Sparkles along top / outer edges only
     final dotPaint = Paint()..style = PaintingStyle.fill;
-    const confettiPositions = <(double, double, double, double)>[
-      (0.05, 0.12, 2.2, 0.55),
-      (0.16, 0.09, 1.8, 0.40),
-      (0.24, 0.26, 2.6, 0.50),
-      (0.33, 0.14, 1.6, 0.35),
-      (0.41, 0.28, 2.4, 0.48),
-      (0.52, 0.08, 2.8, 0.60),
-      (0.61, 0.22, 2.0, 0.45),
-      (0.68, 0.11, 2.5, 0.52),
-      (0.74, 0.38, 1.9, 0.38),
-      (0.83, 0.09, 2.6, 0.55),
-      (0.93, 0.27, 2.2, 0.48),
-      (0.96, 0.52, 2.4, 0.42),
-      (0.44, 0.74, 2.1, 0.38),
-      (0.29, 0.82, 1.8, 0.32),
-      (0.63, 0.78, 2.3, 0.40),
-    ];
-    for (final (px, py, r, a) in confettiPositions) {
+    final sparkles = mobile
+        ? const <(double, double, double, double)>[
+            (0.06, 0.08, 1.8, 0.45),
+            (0.18, 0.04, 1.4, 0.35),
+            (0.85, 0.06, 2.0, 0.45),
+            (0.94, 0.12, 1.6, 0.40),
+            (0.92, 0.22, 1.5, 0.30),
+            (0.05, 0.25, 1.4, 0.28),
+          ]
+        : const <(double, double, double, double)>[
+            (0.05, 0.10, 2.0, 0.45),
+            (0.16, 0.06, 1.6, 0.35),
+            (0.24, 0.18, 2.2, 0.38),
+            (0.78, 0.24, 1.8, 0.32),
+            (0.86, 0.08, 2.4, 0.45),
+            (0.94, 0.18, 2.0, 0.40),
+          ];
+
+    for (final (px, py, r, a) in sparkles) {
       dotPaint.color = const Color(0xFFE3BE80).withValues(alpha: a);
       canvas.drawCircle(Offset(w * px, h * py), r, dotPaint);
     }
-
-    // 6. Gold Ribbon Streamers on Left & Right Edges
-    final streamerPaint = Paint()
-      ..color = const Color(0xFFD4B37A).withValues(alpha: 0.24)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round;
-
-    final leftStreamer = Path()
-      ..moveTo(w * 0.02, h * 0.05)
-      ..cubicTo(
-        w * 0.06,
-        h * 0.18,
-        w * 0.01,
-        h * 0.32,
-        w * 0.04,
-        h * 0.46,
-      );
-    canvas.drawPath(leftStreamer, streamerPaint);
-
-    final rightStreamer = Path()
-      ..moveTo(w * 0.97, h * 0.08)
-      ..cubicTo(
-        w * 0.93,
-        h * 0.22,
-        w * 0.99,
-        h * 0.36,
-        w * 0.95,
-        h * 0.52,
-      );
-    canvas.drawPath(rightStreamer, streamerPaint);
   }
 
   void _drawFireworkBurst(
@@ -6003,17 +5944,17 @@ class _NewYearHeroBackdropPainter extends CustomPainter {
   }) {
     final rayPaint = Paint()
       ..color = const Color(0xFFE3BE80).withValues(alpha: alpha)
-      ..strokeWidth = 1.15
+      ..strokeWidth = 1.0
       ..strokeCap = StrokeCap.round;
 
     final tipPaint = Paint()
-      ..color = const Color(0xFFFFE5B4).withValues(alpha: alpha + 0.18)
+      ..color = const Color(0xFFFFE5B4).withValues(alpha: alpha + 0.12)
       ..style = PaintingStyle.fill;
 
     for (int i = 0; i < rays; i++) {
       final angle = (i * 2 * math.pi) / rays;
       final isLong = i.isEven;
-      final rStart = radius * (isLong ? 0.18 : 0.28);
+      final rStart = radius * (isLong ? 0.22 : 0.32);
       final rEnd = radius * (isLong ? 1.0 : 0.68);
 
       final p1 = Offset(
@@ -6025,14 +5966,14 @@ class _NewYearHeroBackdropPainter extends CustomPainter {
         center.dy + math.sin(angle) * rEnd,
       );
       canvas.drawLine(p1, p2, rayPaint);
-      canvas.drawCircle(p2, isLong ? 1.8 : 1.2, tipPaint);
+      canvas.drawCircle(p2, isLong ? 1.5 : 1.0, tipPaint);
     }
 
     // Center core sparkle
     canvas.drawCircle(
       center,
-      2.6,
-      Paint()..color = const Color(0xFFFFE5B4).withValues(alpha: alpha + 0.25),
+      2.0,
+      Paint()..color = const Color(0xFFFFE5B4).withValues(alpha: alpha + 0.18),
     );
   }
 
@@ -6042,8 +5983,8 @@ class _NewYearHeroBackdropPainter extends CustomPainter {
 }
 
 /// Custom Painter for the Idul Fitri 1448 H / Lebaran Hero Celebration Backdrop:
-/// Draws glowing Arabian gold crescent moon & stars, hanging fanous lanterns,
-/// subtle mosque dome silhouette at the bottom, and "1448 H" calligraphy watermark.
+/// Draws glowing Arabian gold crescent moon & stars, subtle mosque dome silhouette at the bottom.
+/// Zero overlapping watermark text for absolute clarity and elegance.
 class _EidHeroBackdropPainter extends CustomPainter {
   const _EidHeroBackdropPainter({this.cormorantFamily});
 
@@ -6053,38 +5994,39 @@ class _EidHeroBackdropPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
+    final mobile = w < 640;
 
     // 1. Ambient Arabian Gold & Emerald Radial Glows
     final leftGlow = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFFE3BE80).withValues(alpha: 0.16),
+          const Color(0xFFE3BE80).withValues(alpha: mobile ? 0.10 : 0.15),
           const Color(0xFFE3BE80).withValues(alpha: 0.0),
         ],
       ).createShader(
-        Rect.fromCircle(center: Offset(w * 0.20, h * 0.24), radius: 360),
+        Rect.fromCircle(center: Offset(w * 0.18, h * 0.20), radius: 360),
       );
-    canvas.drawCircle(Offset(w * 0.20, h * 0.24), 360, leftGlow);
+    canvas.drawCircle(Offset(w * 0.18, h * 0.20), 360, leftGlow);
 
     final rightGlow = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFFD4B37A).withValues(alpha: 0.20),
+          const Color(0xFFD4B37A).withValues(alpha: mobile ? 0.12 : 0.18),
           const Color(0xFFD4B37A).withValues(alpha: 0.0),
         ],
       ).createShader(
-        Rect.fromCircle(center: Offset(w * 0.78, h * 0.28), radius: 400),
+        Rect.fromCircle(center: Offset(w * 0.82, h * 0.26), radius: 400),
       );
-    canvas.drawCircle(Offset(w * 0.78, h * 0.28), 400, rightGlow);
+    canvas.drawCircle(Offset(w * 0.82, h * 0.26), 400, rightGlow);
 
     // 2. Subtle Mosque Domes & Minaret Silhouette at Bottom of Hero
     final domePaint = Paint()
-      ..color = const Color(0xFF020C08).withValues(alpha: 0.58)
+      ..color = const Color(0xFF020C08).withValues(alpha: 0.48)
       ..style = PaintingStyle.fill;
     final domeStroke = Paint()
-      ..color = const Color(0xFFE3BE80).withValues(alpha: 0.16)
+      ..color = const Color(0xFFE3BE80).withValues(alpha: 0.14)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.1;
+      ..strokeWidth = 1.0;
 
     final horizonPath = Path()..moveTo(0, h);
     horizonPath.lineTo(0, h - 42);
@@ -6098,37 +6040,16 @@ class _EidHeroBackdropPainter extends CustomPainter {
     canvas.drawPath(horizonPath, domePaint);
     canvas.drawPath(horizonPath, domeStroke);
 
-    // 3. Subtle Glowing "1448 H" Watermark in Center-Right Sky
-    final tp1448 = TextPainter(
-      text: TextSpan(
-        text: '1448 H',
-        style: TextStyle(
-          fontFamily: cormorantFamily,
-          fontSize: w >= 900 ? 128 : 82,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 5,
-          foreground: Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.3
-            ..color = const Color(0xFFE3BE80).withValues(alpha: 0.15),
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp1448.paint(
-      canvas,
-      Offset(w * 0.47 - tp1448.width / 2, h * 0.16),
-    );
-
-    // 4. Glowing Golden Crescent Moon in Top Center-Right
-    final moonCenter = Offset(w * 0.52, h * 0.16);
+    // 3. Glowing Golden Crescent Moon in Top Far-Right (clear of headline text)
+    final moonCenter = Offset(w * (mobile ? 0.86 : 0.90), h * (mobile ? 0.07 : 0.11));
+    const moonRadius = 26.0;
     final moonOuter = Path()
-      ..addOval(Rect.fromCircle(center: moonCenter, radius: 34));
+      ..addOval(Rect.fromCircle(center: moonCenter, radius: moonRadius));
     final moonInner = Path()
       ..addOval(
         Rect.fromCircle(
-          center: moonCenter.translate(12, -6),
-          radius: 29,
+          center: moonCenter.translate(9, -5),
+          radius: moonRadius * 0.86,
         ),
       );
     final crescentPath =
@@ -6136,40 +6057,38 @@ class _EidHeroBackdropPainter extends CustomPainter {
     canvas.drawPath(
       crescentPath,
       Paint()
-        ..color = const Color(0xFFE3BE80).withValues(alpha: 0.36)
+        ..color = const Color(0xFFE3BE80).withValues(alpha: 0.26)
         ..style = PaintingStyle.fill,
     );
     canvas.drawPath(
       crescentPath,
       Paint()
-        ..color = const Color(0xFFFFE5B4).withValues(alpha: 0.55)
+        ..color = const Color(0xFFFFE5B4).withValues(alpha: 0.42)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2,
+        ..strokeWidth = 1.0,
     );
 
-    // 5. Hanging Arabian Fanous Lanterns on Left & Right
-    for (final (lx, ly) in [
-      (w * 0.08, h * 0.22),
-      (w * 0.16, h * 0.16),
-      (w * 0.88, h * 0.18),
-      (w * 0.94, h * 0.25),
-    ]) {
-      _drawHangingLantern(canvas, Offset(lx, ly));
+    // 4. Subtle Hanging Fanous Lanterns on Desktop Far Edges
+    if (!mobile) {
+      _drawHangingLantern(canvas, Offset(w * 0.05, h * 0.18));
+      _drawHangingLantern(canvas, Offset(w * 0.95, h * 0.20));
     }
 
-    // 6. Eight-Pointed Islamic Stars & Gold Sparkles
+    // 5. Eight-Pointed Islamic Stars & Gold Sparkles along top perimeter
     final dotPaint = Paint()..style = PaintingStyle.fill;
-    const starPositions = <(double, double, double, double)>[
-      (0.05, 0.12, 2.2, 0.55),
-      (0.22, 0.10, 2.5, 0.48),
-      (0.35, 0.18, 2.0, 0.42),
-      (0.44, 0.09, 2.8, 0.58),
-      (0.62, 0.14, 2.3, 0.50),
-      (0.72, 0.22, 1.9, 0.40),
-      (0.82, 0.11, 2.6, 0.52),
-      (0.42, 0.72, 2.1, 0.38),
-      (0.64, 0.76, 2.3, 0.40),
-    ];
+    final starPositions = mobile
+        ? const <(double, double, double, double)>[
+            (0.06, 0.08, 1.8, 0.45),
+            (0.20, 0.04, 1.4, 0.35),
+            (0.76, 0.05, 1.8, 0.42),
+            (0.92, 0.14, 1.5, 0.38),
+          ]
+        : const <(double, double, double, double)>[
+            (0.05, 0.10, 2.0, 0.45),
+            (0.22, 0.07, 2.2, 0.40),
+            (0.78, 0.18, 1.8, 0.35),
+            (0.88, 0.08, 2.4, 0.45),
+          ];
     for (final (px, py, r, a) in starPositions) {
       dotPaint.color = const Color(0xFFE3BE80).withValues(alpha: a);
       canvas.drawCircle(Offset(w * px, h * py), r, dotPaint);
@@ -6178,40 +6097,40 @@ class _EidHeroBackdropPainter extends CustomPainter {
 
   void _drawHangingLantern(Canvas canvas, Offset bottomCenter) {
     final chainPaint = Paint()
-      ..color = const Color(0xFFE3BE80).withValues(alpha: 0.32)
-      ..strokeWidth = 1.2;
+      ..color = const Color(0xFFE3BE80).withValues(alpha: 0.24)
+      ..strokeWidth = 1.0;
     canvas.drawLine(
       Offset(bottomCenter.dx, 0),
-      Offset(bottomCenter.dx, bottomCenter.dy - 24),
+      Offset(bottomCenter.dx, bottomCenter.dy - 20),
       chainPaint,
     );
 
     final bodyPath = Path()
-      ..moveTo(bottomCenter.dx, bottomCenter.dy - 26)
-      ..lineTo(bottomCenter.dx + 12, bottomCenter.dy - 14)
-      ..lineTo(bottomCenter.dx + 8, bottomCenter.dy + 8)
-      ..lineTo(bottomCenter.dx, bottomCenter.dy + 16)
-      ..lineTo(bottomCenter.dx - 8, bottomCenter.dy + 8)
-      ..lineTo(bottomCenter.dx - 12, bottomCenter.dy - 14)
+      ..moveTo(bottomCenter.dx, bottomCenter.dy - 22)
+      ..lineTo(bottomCenter.dx + 10, bottomCenter.dy - 12)
+      ..lineTo(bottomCenter.dx + 7, bottomCenter.dy + 6)
+      ..lineTo(bottomCenter.dx, bottomCenter.dy + 13)
+      ..lineTo(bottomCenter.dx - 7, bottomCenter.dy + 6)
+      ..lineTo(bottomCenter.dx - 10, bottomCenter.dy - 12)
       ..close();
 
     canvas.drawPath(
       bodyPath,
       Paint()
-        ..color = const Color(0xFFE3BE80).withValues(alpha: 0.18)
+        ..color = const Color(0xFFE3BE80).withValues(alpha: 0.14)
         ..style = PaintingStyle.fill,
     );
     canvas.drawPath(
       bodyPath,
       Paint()
-        ..color = const Color(0xFFE3BE80).withValues(alpha: 0.48)
+        ..color = const Color(0xFFE3BE80).withValues(alpha: 0.36)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.1,
+        ..strokeWidth = 1.0,
     );
     canvas.drawCircle(
       Offset(bottomCenter.dx, bottomCenter.dy - 3),
-      4.5,
-      Paint()..color = const Color(0xFFFFE5B4).withValues(alpha: 0.55),
+      3.5,
+      Paint()..color = const Color(0xFFFFE5B4).withValues(alpha: 0.45),
     );
   }
 
