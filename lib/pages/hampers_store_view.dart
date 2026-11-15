@@ -5891,7 +5891,32 @@ class _NewYearHeroBackdropPainter extends CustomPainter {
     canvas.drawPath(skylinePath, skylinePaint);
     canvas.drawPath(skylinePath, skylineStroke);
 
-    // 3. Desktop-only gentle corner fireworks (positioned far from text columns)
+    // 3. Signature Hallmark "2027" Watermark (Positioned in open sky - never overlapping text)
+    final tp2027 = TextPainter(
+      text: TextSpan(
+        text: '2027',
+        style: TextStyle(
+          fontFamily: cormorantFamily,
+          fontSize: mobile ? 56 : (w >= 1024 ? 135 : 95),
+          fontWeight: FontWeight.w700,
+          letterSpacing: mobile ? 3 : 6,
+          foreground: Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = mobile ? 1.2 : 1.5
+            ..color =
+                const Color(0xFFE3BE80).withValues(alpha: mobile ? 0.22 : 0.16),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final offset2027 = mobile
+        ? Offset(w - tp2027.width - 16, 20)
+        : Offset(w * 0.65 - tp2027.width / 2, h * 0.08);
+
+    tp2027.paint(canvas, offset2027);
+
+    // 4. Desktop-only gentle corner fireworks (positioned far from text columns)
     if (!mobile) {
       _drawFireworkBurst(
         canvas,
@@ -6040,8 +6065,34 @@ class _EidHeroBackdropPainter extends CustomPainter {
     canvas.drawPath(horizonPath, domePaint);
     canvas.drawPath(horizonPath, domeStroke);
 
-    // 3. Glowing Golden Crescent Moon in Top Far-Right (clear of headline text)
-    final moonCenter = Offset(w * (mobile ? 0.86 : 0.90), h * (mobile ? 0.07 : 0.11));
+    // 3. Signature Hallmark "1448 H" Watermark (Positioned in open sky - never overlapping text)
+    final tp1448 = TextPainter(
+      text: TextSpan(
+        text: '1448 H',
+        style: TextStyle(
+          fontFamily: cormorantFamily,
+          fontSize: mobile ? 48 : (w >= 1024 ? 115 : 80),
+          fontWeight: FontWeight.w700,
+          letterSpacing: mobile ? 2.5 : 5,
+          foreground: Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = mobile ? 1.1 : 1.4
+            ..color = const Color(0xFFE3BE80)
+                .withValues(alpha: mobile ? 0.22 : 0.15),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final offset1448 = mobile
+        ? Offset(w - tp1448.width - 16, 20)
+        : Offset(w * 0.65 - tp1448.width / 2, h * 0.08);
+
+    tp1448.paint(canvas, offset1448);
+
+    // 4. Glowing Golden Crescent Moon in Top Far-Right (clear of headline text)
+    final moonCenter =
+        Offset(w * (mobile ? 0.91 : 0.90), h * (mobile ? 0.06 : 0.11));
     const moonRadius = 26.0;
     final moonOuter = Path()
       ..addOval(Rect.fromCircle(center: moonCenter, radius: moonRadius));
