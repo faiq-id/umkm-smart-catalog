@@ -2552,14 +2552,14 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                 runSpacing: mobile ? 12 : 18,
                 children: [
                   for (final corp in const [
-                    (Icons.account_balance_rounded, 'MANDIRI'),
-                    (Icons.cell_tower_rounded, 'TELKOM INDONESIA'),
-                    (Icons.diamond_outlined, 'BCA PRIORITAS'),
-                    (Icons.local_fire_department_rounded, 'PERTAMINA'),
-                    (Icons.directions_car_filled_outlined, 'ASTRA INTL'),
-                    (Icons.storefront_rounded, 'GOTO GROUP'),
-                    (Icons.spa_outlined, 'UNILEVER'),
-                    (Icons.token_outlined, 'DBS BANK'),
+                    (Icons.account_balance_rounded, 'MANDIRA CORP'),
+                    (Icons.cell_tower_rounded, 'TELKOMIKA NUSANTARA'),
+                    (Icons.diamond_outlined, 'BKA PRIORITAS'),
+                    (Icons.local_fire_department_rounded, 'PERTANUSA ENERGI'),
+                    (Icons.directions_car_filled_outlined, 'ASTRACO INTL'),
+                    (Icons.storefront_rounded, 'GOTECH INDONESIA'),
+                    (Icons.spa_outlined, 'UNILUX CONSUMER'),
+                    (Icons.token_outlined, 'DNS PACIFIC BANK'),
                   ])
                     Hover(
                       builder: (context, hovered) => Row(
@@ -2600,23 +2600,23 @@ class _HampersStoreViewState extends State<HampersStoreView> {
             '"Presisi jadwal pengiriman dan standar kemewahan hardbox kustom berlogo emas yang sangat diapresiasi oleh jajaran dewan komisaris kami."',
         initials: 'BM',
         role: 'VP Corporate Communications',
-        company: 'PT Bank Mandiri (Persero) Tbk',
+        company: 'PT Bank Mandira (Persero) Tbk',
         icon: Icons.account_balance_rounded,
       ),
       (
         quote:
             '"Ketertiban administrasi faktur pajak PPN 11%, e-Meterai, dan BAST lengkap membuat proses audit pengadaan akhir tahun berjalan tanpa kendala."',
-        initials: 'TL',
+        initials: 'TN',
         role: 'Head of Procurement & Vendor Relations',
-        company: 'PT Telkom Indonesia (Persero) Tbk',
+        company: 'PT Telkomika Nusantara (Persero) Tbk',
         icon: Icons.cell_tower_rounded,
       ),
       (
         quote:
             '"Kualitas artisan cake bersertifikat Halal & kurasi gourmet mewah yang selalu konsisten untuk 350+ mitra VVIP kami selama 3 tahun berturut-turut."',
-        initials: 'PT',
+        initials: 'PE',
         role: 'Senior VP Human Capital',
-        company: 'PT Pertamina (Persero)',
+        company: 'PT Pertanusa Energi (Persero)',
         icon: Icons.local_fire_department_rounded,
       ),
     ];
@@ -4198,7 +4198,7 @@ class _HampersStoreViewState extends State<HampersStoreView> {
         desc:
             'Skema pembayaran fleksibel bagi entitas PT yang telah terverifikasi: Down Payment (DP) 50% untuk booking slot logistik & produksi, dan pelunasan H-3 sebelum jadwal distribusi pertama.',
         bullets: [
-          'Rekening Giro Perusahaan (BCA & Mandiri)',
+          'Rekening Giro Perusahaan Resmi (Bank BUMN & Swasta Terdaftar OJK)',
           'Penerbitan SPK & Kontrak Kerja Sama',
         ],
       ),
@@ -4830,7 +4830,7 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                   controller: _companyCtrl,
                   style: _jakarta(12.5, color: _kCardTextPrimary),
                   decoration: InputDecoration(
-                    hintText: 'misal: PT Bank Mandiri (Persero) Tbk',
+                    hintText: 'misal: PT Mandira Nusantara (Persero) Tbk',
                     hintStyle: _jakarta(12,
                         color: _kCardTextMuted.withValues(alpha: 0.65)),
                     prefixIcon: const Icon(Icons.apartment_rounded,
