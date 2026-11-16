@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -485,6 +486,37 @@ class _HampersStoreViewState extends State<HampersStoreView> {
   // Active Season Edition ('Tahun Baru 2027' vs 'Idul Fitri 1448 H')
   HamperSeason _season = HamperSeason.newYear;
 
+  Timer? _countdownTimer;
+  late final ValueNotifier<DateTime> _currentTimeNotifier;
+
+  DateTime _getTargetDeadline(bool isEid) {
+    final now = DateTime.now();
+    if (isEid) {
+      // H-10 Lebaran 1448 H (~10 Maret 2027)
+      var target = DateTime(2027, 3, 10, 23, 59, 59);
+      if (target.isBefore(now)) {
+        target = DateTime(now.year + 1, 3, 10, 23, 59, 59);
+      }
+      return target;
+    } else {
+      // Batas Akhir Pemesanan Tahun Baru: 20 Desember 2026
+      var target = DateTime(2026, 12, 20, 23, 59, 59);
+      if (target.isBefore(now)) {
+        target = DateTime(now.year + 1, 12, 20, 23, 59, 59);
+      }
+      return target;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _currentTimeNotifier = ValueNotifier<DateTime>(DateTime.now());
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _currentTimeNotifier.value = DateTime.now();
+    });
+  }
+
   bool get _isEid => _season == HamperSeason.eid;
   Color get _activePrimary => _isEid ? _kEidPrimary : _kPrimary;
   Color get _activePrimaryDark => _isEid ? _kEidPrimaryDark : _kPrimaryDark;
@@ -617,6 +649,8 @@ class _HampersStoreViewState extends State<HampersStoreView> {
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
+    _currentTimeNotifier.dispose();
     _scroll.dispose();
     _selectedTierNotifier.dispose();
     _selectedBoxQtyNotifier.dispose();
@@ -1508,167 +1542,200 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                     final showRightInfo = c.maxWidth >= 980;
                     final isMobileStack = c.maxWidth < 760;
 
-                    final timerWidgets = <Widget>[
-                      Text(
-                        _isEid ? '🌙' : '✨',
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      const SizedBox(width: 6),
-                      RichText(
-                        text: TextSpan(
-                          style: _jakarta(11.5, color: Colors.white),
-                          children: [
-                            TextSpan(
-                              text: isMobileStack
-                                  ? (_isEid ? 'Pre-Order Raya: ' : 'Batas Order: ')
-                                  : (_isEid
-                                      ? 'Batas Akhir Pre-Order Idul Fitri: '
-                                      : 'Batas Akhir Pemesanan Tahun Baru: '),
-                              style: _jakarta(
-                                11.5,
-                                weight: FontWeight.w500,
-                                color: Colors.white.withValues(alpha: 0.9),
-                              ),
+                    return ValueListenableBuilder<DateTime>(
+                      valueListenable: _currentTimeNotifier,
+                      builder: (context, now, _) {
+                        final target = _getTargetDeadline(_isEid);
+                        final diff = target.isAfter(now)
+                            ? target.difference(now)
+                            : Duration.zero;
+                        final days = diff.inDays.toString().padLeft(2, '0');
+                        final hours =
+                            (diff.inHours % 24).toString().padLeft(2, '0');
+                        final minutes =
+                            (diff.inMinutes % 60).toString().padLeft(2, '0');
+                        final seconds =
+                            (diff.inSeconds % 60).toString().padLeft(2, '0');
+
+                        final timerWidgets = <Widget>[
+                          Text(
+                            _isEid ? '🌙' : '✨',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          const SizedBox(width: 6),
+                          RichText(
+                            text: TextSpan(
+                              style: _jakarta(11.5, color: Colors.white),
+                              children: [
+                                TextSpan(
+                                  text: isMobileStack
+                                      ? (_isEid
+                                          ? 'Pre-Order Raya: '
+                                          : 'Batas Order: ')
+                                      : (_isEid
+                                          ? 'Batas Akhir Pre-Order Idul Fitri: '
+                                          : 'Batas Akhir Pemesanan Tahun Baru: '),
+                                  style: _jakarta(
+                                    11.5,
+                                    weight: FontWeight.w500,
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: isMobileStack
+                                      ? (_isEid ? 'H-10 Lebaran' : '20 Des 2026')
+                                      : (_isEid
+                                          ? 'H-10 Lebaran (Early Bird -12%)'
+                                          : '20 Desember 2026'),
+                                  style: _jakarta(
+                                    11.5,
+                                    weight: FontWeight.w700,
+                                    color: _kTertiaryFixed,
+                                  ),
+                                ),
+                              ],
                             ),
-                            TextSpan(
-                              text: isMobileStack
-                                  ? (_isEid ? 'H-10 Lebaran' : '20 Des 2026')
-                                  : (_isEid
-                                      ? 'H-10 Lebaran (Early Bird -12%)'
-                                      : '20 Desember 2026'),
+                          ),
+                          const SizedBox(width: 8),
+                          _CountdownPill(
+                            value: days,
+                            unit: 'Hari',
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            child: Text(
+                              ':',
                               style: _jakarta(
                                 11.5,
                                 weight: FontWeight.w700,
-                                color: _kTertiaryFixed,
+                                color: _kGoldAccent,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      _CountdownPill(
-                        value: _isEid ? '24' : '36',
-                        unit: 'Hari',
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Text(
-                          ':',
-                          style: _jakarta(
-                            11.5,
-                            weight: FontWeight.w700,
-                            color: _kGoldAccent,
                           ),
-                        ),
-                      ),
-                      const _CountdownPill(value: '08', unit: 'Jam'),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Text(
-                          ':',
-                          style: _jakarta(
-                            11.5,
-                            weight: FontWeight.w700,
-                            color: _kGoldAccent,
-                          ),
-                        ),
-                      ),
-                      const _CountdownPill(value: '45', unit: 'Menit'),
-                    ];
-
-                    if (isMobileStack) {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildSeasonSwitcherPill(
-                            onDark: true,
-                            compact: false,
-                          ),
-                          const SizedBox(height: 7),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: timerWidgets,
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-
-                    final countdownRow = FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildSeasonSwitcherPill(
-                            onDark: true,
-                            compact: false,
-                          ),
-                          const SizedBox(width: 14),
-                          ...timerWidgets,
-                        ],
-                      ),
-                    );
-
-                    if (!showRightInfo) {
-                      return Center(child: countdownRow);
-                    }
-
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(child: countdownRow),
-                        const SizedBox(width: 16),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.verified_rounded,
-                              size: 14,
-                              color: _kTertiaryFixed,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Resmi PKP: e-Faktur PPN 11%',
+                          _CountdownPill(value: hours, unit: 'Jam'),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            child: Text(
+                              ':',
                               style: _jakarta(
                                 11.5,
-                                color: Colors.white.withValues(alpha: 0.8),
+                                weight: FontWeight.w700,
+                                color: _kGoldAccent,
                               ),
                             ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              child: Text(
-                                '|',
-                                style: _jakarta(
-                                  11.5,
-                                  color: Colors.white.withValues(alpha: 0.3),
-                                ),
+                          ),
+                          _CountdownPill(value: minutes, unit: 'Mnt'),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            child: Text(
+                              ':',
+                              style: _jakarta(
+                                11.5,
+                                weight: FontWeight.w700,
+                                color: _kGoldAccent,
                               ),
                             ),
-                            RichText(
-                              text: TextSpan(
-                                style: _jakarta(
-                                  11.5,
-                                  color: Colors.white.withValues(alpha: 0.82),
+                          ),
+                          _CountdownPill(value: seconds, unit: 'Dtk'),
+                        ];
+
+                        if (isMobileStack) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildSeasonSwitcherPill(
+                                onDark: true,
+                                compact: false,
+                              ),
+                              const SizedBox(height: 7),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: timerWidgets,
                                 ),
-                                children: [
-                                  const TextSpan(text: 'Hotline B2B: '),
-                                  TextSpan(
-                                    text: hotline,
+                              ),
+                            ],
+                          );
+                        }
+
+                        final countdownRow = FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildSeasonSwitcherPill(
+                                onDark: true,
+                                compact: false,
+                              ),
+                              const SizedBox(width: 14),
+                              ...timerWidgets,
+                            ],
+                          ),
+                        );
+
+                        if (!showRightInfo) {
+                          return Center(child: countdownRow);
+                        }
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(child: countdownRow),
+                            const SizedBox(width: 16),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.verified_rounded,
+                                  size: 14,
+                                  color: _kTertiaryFixed,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Resmi PKP: e-Faktur PPN 11%',
+                                  style: _jakarta(
+                                    11.5,
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 10),
+                                  child: Text(
+                                    '|',
                                     style: _jakarta(
                                       11.5,
-                                      weight: FontWeight.w700,
-                                      color: _kTertiaryFixed,
+                                      color:
+                                          Colors.white.withValues(alpha: 0.3),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                RichText(
+                                  text: TextSpan(
+                                    style: _jakarta(
+                                      11.5,
+                                      color:
+                                          Colors.white.withValues(alpha: 0.82),
+                                    ),
+                                    children: [
+                                      const TextSpan(text: 'Hotline B2B: '),
+                                      TextSpan(
+                                        text: hotline,
+                                        style: _jakarta(
+                                          11.5,
+                                          weight: FontWeight.w700,
+                                          color: _kTertiaryFixed,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                      ],
+                        );
+                      },
                     );
                   },
                 ),
@@ -1822,22 +1889,28 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                         children: [
                           Expanded(
                             flex: 7,
-                            child: _buildHeroTextColumn(store, mobile),
+                            child: _buildHeroTextColumn(store, false),
                           ),
                           const SizedBox(width: 48),
                           Expanded(
                             flex: 5,
-                            child: _buildHeroImageCard(store, mobile),
+                            child: _buildHeroImageCard(store, false),
                           ),
                         ],
+                      )
+                    else if (mobile)
+                      _buildHeroTextColumn(
+                        store,
+                        true,
+                        embeddedImageCard: _buildHeroImageCard(store, true),
                       )
                     else
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildHeroTextColumn(store, mobile),
-                          SizedBox(height: mobile ? 26 : 36),
-                          _buildHeroImageCard(store, mobile),
+                          _buildHeroTextColumn(store, false),
+                          const SizedBox(height: 36),
+                          _buildHeroImageCard(store, false),
                         ],
                       ),
                   ],
@@ -1850,7 +1923,81 @@ class _HampersStoreViewState extends State<HampersStoreView> {
     );
   }
 
-  Widget _buildHeroTextColumn(StoreProfile store, bool mobile) {
+  Widget _buildHeroPricePill(bool mobile) {
+    final startingPrice = _isEid ? 'Rp 285.000' : 'Rp 385.000';
+    return Container(
+      margin: EdgeInsets.only(
+        top: mobile ? 12 : 16,
+        bottom: mobile ? 14 : 20,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: mobile ? 12 : 16,
+        vertical: mobile ? 7 : 8.5,
+      ),
+      decoration: BoxDecoration(
+        color: _activePrimaryDark.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: _kTertiaryFixed.withValues(alpha: 0.55),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.sell_outlined,
+            size: mobile ? 13 : 15,
+            color: _kTertiaryFixed,
+          ),
+          const SizedBox(width: 7),
+          RichText(
+            text: TextSpan(
+              style: _jakarta(
+                mobile ? 11 : 12.5,
+                weight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
+              children: [
+                const TextSpan(text: 'Mulai '),
+                TextSpan(
+                  text: '$startingPrice / box',
+                  style: _jakarta(
+                    mobile ? 11.5 : 13,
+                    weight: FontWeight.w800,
+                    color: _kTertiaryFixed,
+                  ),
+                ),
+                TextSpan(
+                  text: mobile
+                      ? '  •  Min. 10 Box  •  Diskon s/d 18%'
+                      : '  •  Min. Order 10 Box  •  Diskon Kuantitas s/d 18%',
+                  style: _jakarta(
+                    mobile ? 11 : 12.5,
+                    weight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroTextColumn(
+    StoreProfile store,
+    bool mobile, {
+    Widget? embeddedImageCard,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1915,40 +2062,66 @@ class _HampersStoreViewState extends State<HampersStoreView> {
             ],
           ),
         ),
-        SizedBox(height: mobile ? 14 : 18),
+        _buildHeroPricePill(mobile),
+        if (embeddedImageCard != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 18),
+            child: embeddedImageCard,
+          ),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 620),
           child: RichText(
             text: TextSpan(
               style: _jakarta(
-                mobile ? 13.5 : 16,
-                weight: FontWeight.w300,
-                color: Colors.white.withValues(alpha: 0.86),
-                height: 1.6,
+                mobile ? 13 : 16,
+                weight: FontWeight.w400,
+                color: Colors.white.withValues(alpha: 0.88),
+                height: mobile ? 1.5 : 1.6,
               ),
-              children: [
-                TextSpan(
-                  text: _isEid
-                      ? 'Sempurnakan silaturahmi Hari Raya Idul Fitri bersama klien VVIP, jajaran direksi, hingga pembagian THR ribuan karyawan dengan kurasi '
-                      : 'Rayakan pencapaian tahun ini bersama klien, mitra, dan jajaran direksi dengan bingkisan eksklusif berfaktur pajak resmi. Dirancang khusus untuk tim ',
-                ),
-                TextSpan(
-                  text: _isEid
-                      ? 'Hardbox Eksekutif & Paket Lebaran Praktis (Biskuit Kaleng & Sirup)'
-                      : 'Procurement, HRD, dan Sekretariat Direksi',
-                  style: _jakarta(
-                    mobile ? 13.5 : 16,
-                    weight: FontWeight.w600,
-                    color: _kTertiaryFixed,
-                    height: 1.6,
-                  ),
-                ),
-                TextSpan(
-                  text: _isEid
-                      ? ' berfaktur pajak PPN 11% serta 100% bersertifikat Halal MUI & BPOM.'
-                      : ' dengan kurasi gourmet bersertifikat Halal & BPOM.',
-                ),
-              ],
+              children: mobile
+                  ? [
+                      TextSpan(
+                        text: _isEid
+                            ? 'Bingkisan silaturahmi & paket Raya korporat kurasi '
+                            : 'Bingkisan eksklusif akhir tahun kurasi ',
+                      ),
+                      TextSpan(
+                        text: 'Halal & BPOM berfaktur pajak PPN 11%',
+                        style: _jakarta(
+                          13,
+                          weight: FontWeight.w700,
+                          color: _kTertiaryFixed,
+                        ),
+                      ),
+                      TextSpan(
+                        text: _isEid
+                            ? ' untuk jajaran direksi, mitra, hingga ribuan staf perseroan.'
+                            : ' untuk jajaran direksi, mitra bisnis, dan apresiasi perseroan Anda.',
+                      ),
+                    ]
+                  : [
+                      TextSpan(
+                        text: _isEid
+                            ? 'Sempurnakan silaturahmi Hari Raya Idul Fitri bersama klien VVIP, jajaran direksi, hingga pembagian THR ribuan karyawan dengan kurasi '
+                            : 'Rayakan pencapaian tahun ini bersama klien, mitra, dan jajaran direksi dengan bingkisan eksklusif berfaktur pajak resmi. Dirancang khusus untuk tim ',
+                      ),
+                      TextSpan(
+                        text: _isEid
+                            ? 'Hardbox Eksekutif & Paket Lebaran Praktis (Biskuit Kaleng & Sirup)'
+                            : 'Procurement, HRD, dan Sekretariat Direksi',
+                        style: _jakarta(
+                          16,
+                          weight: FontWeight.w600,
+                          color: _kTertiaryFixed,
+                          height: 1.6,
+                        ),
+                      ),
+                      TextSpan(
+                        text: _isEid
+                            ? ' berfaktur pajak PPN 11% serta 100% bersertifikat Halal MUI & BPOM.'
+                            : ' dengan kurasi gourmet bersertifikat Halal & BPOM.',
+                      ),
+                    ],
             ),
           ),
         ),
@@ -2097,11 +2270,11 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                       children: [
                         Text(
                           stat.$1,
-                          style: _cormorant(
-                            mobile ? 22 : 30,
-                            weight: FontWeight.w700,
+                          style: _jakarta(
+                            mobile ? 20 : 26,
+                            weight: FontWeight.w800,
                             color: _kTertiaryFixed,
-                            height: 1.05,
+                            height: 1.1,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -2193,7 +2366,7 @@ class _HampersStoreViewState extends State<HampersStoreView> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(mobile ? 11 : 13),
         child: AspectRatio(
-          aspectRatio: 4 / 3.5,
+          aspectRatio: mobile ? (16 / 10.5) : (4 / 3.5),
           child: Stack(
             fit: StackFit.expand,
             children: [
