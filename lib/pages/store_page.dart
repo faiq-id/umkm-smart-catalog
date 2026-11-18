@@ -28,24 +28,87 @@ class StorePage extends StatefulWidget {
   State<StorePage> createState() => _StorePageState();
 }
 
-class _StorePageState extends State<StorePage> {
+class _StorePageState extends State<StorePage>
+    with SingleTickerProviderStateMixin {
   final _scroll = ScrollController();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _keys = {for (final s in NavSection.values) s: GlobalKey()};
   final _activeNotifier = ValueNotifier<NavSection>(NavSection.beranda);
   DateTime _lastScrollCheck = DateTime.now();
 
+  late final AnimationController _themeCtrl;
+  bool _isExiting = false;
+  bool _isSwitching = false;
+
   @override
   void initState() {
     super.initState();
+    _themeCtrl = AnimationController(vsync: this, value: 1.0);
     _scroll.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    _themeCtrl.dispose();
     _scroll.dispose();
     _activeNotifier.dispose();
     super.dispose();
+  }
+
+  Future<void> _onSelectTheme(
+    String targetId,
+    String title,
+    String brand,
+    IconData icon,
+  ) async {
+    final currentId = context.read<StoreBloc>().state.currentStoreId;
+    if (targetId == currentId) {
+      scrollTo(NavSection.beranda);
+      return;
+    }
+    if (_isSwitching) return;
+    _isSwitching = true;
+
+    // Fase 1: Halaman lama keluar (Scale 1.0 -> 0.95, Geser Kiri, Fade Out)
+    setState(() => _isExiting = true);
+    await _themeCtrl.animateBack(
+      0.0,
+      duration: const Duration(milliseconds: 210),
+      curve: Curves.easeInCubic,
+    );
+    if (!mounted) {
+      _isSwitching = false;
+      return;
+    }
+
+    // Ganti tema saat layar bersih (opacity 0.0) agar tidak ada 2 halaman berat bersamaan
+    context.read<StoreBloc>().add(StoreEvent.switchTheme(targetId));
+    if (_scroll.hasClients) {
+      _scroll.jumpTo(0);
+    }
+    _activeNotifier.value = NavSection.beranda;
+
+    // Tunggu 1 frame agar widget baru selesai di-mount & di-cache di RepaintBoundary
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) {
+      _isSwitching = false;
+      return;
+    }
+
+    // Fase 2: Halaman baru masuk menggantikan (Geser Masuk dari Kanan, Scale 0.96 -> 1.0, Fade In)
+    setState(() => _isExiting = false);
+    await _themeCtrl.animateTo(
+      1.0,
+      duration: const Duration(milliseconds: 270),
+      curve: Curves.easeOutCubic,
+    );
+    _isSwitching = false;
+    if (!mounted) return;
+    showToast(
+      context,
+      'Beralih ke $title ($brand)',
+      icon: icon,
+    );
   }
 
   void _onScroll() {
@@ -101,99 +164,140 @@ class _StorePageState extends State<StorePage> {
     return BlocBuilder<StoreBloc, StoreState>(
       builder: (context, state) {
         final store = state.store;
-        if (store.id == 'pet') {
-          return HampersStoreView(onOpenAdmin: _openAdmin);
-        }
         final pal = store.palette;
 
-        return Scaffold(
-          key: _scaffoldKey,
-          backgroundColor: pal.surface,
-          endDrawer: ValueListenableBuilder<NavSection>(
-            valueListenable: _activeNotifier,
-            builder: (context, active, _) => _MobileDrawer(
-              active: active,
-              onNav: (s) {
-                Navigator.of(context).pop();
-                Future.delayed(const Duration(milliseconds: 250), () => scrollTo(s));
-              },
-              onAdmin: () {
-                Navigator.of(context).pop();
-                _openAdmin();
-              },
-            ),
-          ),
-          body: Stack(
+        final Widget activeStoreView = store.id == 'pet'
+            ? HampersStoreView(onOpenAdmin: _openAdmin)
+            : Scaffold(
+                key: _scaffoldKey,
+                backgroundColor: pal.surface,
+                endDrawer: ValueListenableBuilder<NavSection>(
+                  valueListenable: _activeNotifier,
+                  builder: (context, active, _) => _MobileDrawer(
+                    active: active,
+                    onNav: (s) {
+                      Navigator.of(context).pop();
+                      Future.delayed(
+                          const Duration(milliseconds: 250), () => scrollTo(s));
+                    },
+                    onAdmin: () {
+                      Navigator.of(context).pop();
+                      _openAdmin();
+                    },
+                  ),
+                ),
+                body: Stack(
+                  children: [
+                    Column(
+                      children: [
+                        RepaintBoundary(
+                          child: ValueListenableBuilder<NavSection>(
+                            valueListenable: _activeNotifier,
+                            builder: (context, active, _) => _Header(
+                              active: active,
+                              onNav: scrollTo,
+                              onAdmin: _openAdmin,
+                              onMenu: () =>
+                                  _scaffoldKey.currentState?.openEndDrawer(),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Scrollbar(
+                            controller: _scroll,
+                            child: CustomScrollView(
+                              key: ValueKey(store.id),
+                              controller: _scroll,
+                              physics: const ClampingScrollPhysics(),
+                              slivers: [
+                                SliverToBoxAdapter(
+                                  child: RepaintBoundary(
+                                    child: HeroSection(
+                                      key: _keys[NavSection.beranda],
+                                      onDirections: () =>
+                                          scrollTo(NavSection.lokasi),
+                                    ),
+                                  ),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: RepaintBoundary(
+                                    child: PromoBanner(
+                                      onClaim: () =>
+                                          scrollTo(NavSection.katalog),
+                                    ),
+                                  ),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: RepaintBoundary(
+                                    child: CatalogSection(
+                                      key: _keys[NavSection.katalog],
+                                    ),
+                                  ),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: RepaintBoundary(
+                                    child: LocationSection(
+                                      key: _keys[NavSection.lokasi],
+                                      qrKey: _keys[NavSection.qr]!,
+                                    ),
+                                  ),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: RepaintBoundary(
+                                    child: StoreFooter(onNav: scrollTo),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: RepaintBoundary(child: FloatingCartBar()),
+                    ),
+                  ],
+                ),
+              );
+
+        return ColoredBox(
+          color: const Color(0xFF0B1220),
+          child: Stack(
             children: [
-              Column(
-                children: [
-                  RepaintBoundary(
-                    child: ValueListenableBuilder<NavSection>(
-                      valueListenable: _activeNotifier,
-                      builder: (context, active, _) => _Header(
-                        active: active,
-                        onNav: scrollTo,
-                        onAdmin: _openAdmin,
-                        onMenu: () => _scaffoldKey.currentState?.openEndDrawer(),
+              AnimatedBuilder(
+                animation: _themeCtrl,
+                child: RepaintBoundary(
+                  key: ValueKey('store-boundary-${store.id}'),
+                  child: activeStoreView,
+                ),
+                builder: (context, child) {
+                  final t = _themeCtrl.value;
+                  if (t >= 0.999) return child!;
+                  final double scale =
+                      _isExiting ? (0.95 + 0.05 * t) : (0.96 + 0.04 * t);
+                  final Offset offset = _isExiting
+                      ? Offset(-0.05 * (1.0 - t), 0.012 * (1.0 - t))
+                      : Offset(0.05 * (1.0 - t), 0.012 * (1.0 - t));
+                  return Opacity(
+                    opacity: t.clamp(0.0, 1.0),
+                    child: FractionalTranslation(
+                      translation: offset,
+                      child: Transform.scale(
+                        scale: scale,
+                        child: child,
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Scrollbar(
-                      controller: _scroll,
-                      child: CustomScrollView(
-                        key: ValueKey(store.id),
-                        controller: _scroll,
-                        physics: const ClampingScrollPhysics(),
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: RepaintBoundary(
-                              child: HeroSection(
-                                key: _keys[NavSection.beranda],
-                                onDirections: () => scrollTo(NavSection.lokasi),
-                              ),
-                            ),
-                          ),
-                          SliverToBoxAdapter(
-                            child: RepaintBoundary(
-                              child: PromoBanner(
-                                  onClaim: () => scrollTo(NavSection.katalog)),
-                            ),
-                          ),
-                          SliverToBoxAdapter(
-                            child: RepaintBoundary(
-                              child: CatalogSection(key: _keys[NavSection.katalog]),
-                            ),
-                          ),
-                          SliverToBoxAdapter(
-                            child: RepaintBoundary(
-                              child: LocationSection(
-                                key: _keys[NavSection.lokasi],
-                                qrKey: _keys[NavSection.qr]!,
-                              ),
-                            ),
-                          ),
-                          SliverToBoxAdapter(
-                            child: RepaintBoundary(
-                              child: StoreFooter(onNav: scrollTo),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: RepaintBoundary(child: FloatingCartBar()),
+                  );
+                },
               ),
               if (AppConfig.isDemoShowcase)
                 DemoBar(
                   onAdmin: _openAdmin,
                   onSwitched: () => scrollTo(NavSection.beranda),
+                  onSelectTheme: _onSelectTheme,
                 ),
             ],
           ),
@@ -212,11 +316,18 @@ class DemoBar extends StatefulWidget {
     super.key,
     required this.onAdmin,
     required this.onSwitched,
+    this.onSelectTheme,
     this.isProfilePage = false,
   });
 
   final VoidCallback onAdmin;
   final VoidCallback onSwitched;
+  final Future<void> Function(
+    String storeId,
+    String title,
+    String brand,
+    IconData icon,
+  )? onSelectTheme;
   final bool isProfilePage;
 
   @override
@@ -623,6 +734,15 @@ class _DemoBarState extends State<DemoBar> {
                                     child: Hover(
                                       onTap: () {
                                         _closeSidebar();
+                                        if (widget.onSelectTheme != null) {
+                                          widget.onSelectTheme!(
+                                            s.id,
+                                            title,
+                                            brand,
+                                            icon,
+                                          );
+                                          return;
+                                        }
                                         context
                                             .read<StoreBloc>()
                                             .add(StoreEvent.switchTheme(s.id));

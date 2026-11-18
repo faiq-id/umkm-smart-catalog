@@ -8,12 +8,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../bloc/store_bloc.dart';
 import '../bloc/store_event.dart';
 import '../bloc/store_state.dart';
-import '../config/app_config.dart';
 import '../models/models.dart';
 import '../ui/common.dart';
 import '../utils/format.dart';
 import '../widgets/cart_bar.dart';
-import 'store_page.dart';
 
 enum HamperSeason { newYear, eid }
 
@@ -1164,11 +1162,6 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                 bottom: 0,
                 child: RepaintBoundary(child: FloatingCartBar()),
               ),
-              if (AppConfig.isDemoShowcase)
-                DemoBar(
-                  onAdmin: widget.onOpenAdmin,
-                  onSwitched: _scrollToTop,
-                ),
             ],
           ),
         );
