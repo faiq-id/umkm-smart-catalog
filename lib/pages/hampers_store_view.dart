@@ -1099,7 +1099,10 @@ class _HampersStoreViewState extends State<HampersStoreView> {
               Column(
                 children: [
                   RepaintBoundary(
-                    child: _buildTopHeader(context, store),
+                    child: StaggeredThemeBlock(
+                      stage: 0,
+                      child: _buildTopHeader(context, store),
+                    ),
                   ),
                   Expanded(
                     child: Scrollbar(
@@ -1110,44 +1113,68 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                         slivers: [
                           SliverToBoxAdapter(
                             child: RepaintBoundary(
-                              child: _buildHeroSection(context, store),
+                              child: StaggeredThemeBlock(
+                                stage: 1,
+                                child: _buildHeroSection(context, store),
+                              ),
                             ),
                           ),
                           SliverToBoxAdapter(
                             child: RepaintBoundary(
-                              child: _buildClientTrustSection(context),
+                              child: StaggeredThemeBlock(
+                                stage: 2,
+                                child: _buildClientTrustSection(context),
+                              ),
                             ),
                           ),
                           SliverToBoxAdapter(
                             child: RepaintBoundary(
-                              child: _buildTestimonialsSection(context),
+                              child: StaggeredThemeBlock(
+                                stage: 2,
+                                child: _buildTestimonialsSection(context),
+                              ),
                             ),
                           ),
                           SliverToBoxAdapter(
                             child: RepaintBoundary(
-                              child:
-                                  _buildKatalogSection(context, state, store),
+                              child: StaggeredThemeBlock(
+                                stage: 3,
+                                child:
+                                    _buildKatalogSection(context, state, store),
+                              ),
                             ),
                           ),
                           SliverToBoxAdapter(
                             child: RepaintBoundary(
-                              child: _buildPersonalisasiSection(context),
+                              child: StaggeredThemeBlock(
+                                stage: 3,
+                                child: _buildPersonalisasiSection(context),
+                              ),
                             ),
                           ),
                           SliverToBoxAdapter(
                             child: RepaintBoundary(
-                              child: _buildLegalitasSection(context),
+                              child: StaggeredThemeBlock(
+                                stage: 3,
+                                child: _buildLegalitasSection(context),
+                              ),
                             ),
                           ),
                           SliverToBoxAdapter(
                             child: RepaintBoundary(
-                              child: _buildQuickQuoteSection(
-                                  context, state, store),
+                              child: StaggeredThemeBlock(
+                                stage: 3,
+                                child: _buildQuickQuoteSection(
+                                    context, state, store),
+                              ),
                             ),
                           ),
                           SliverToBoxAdapter(
                             child: RepaintBoundary(
-                              child: _buildFooterSection(context, store),
+                              child: StaggeredThemeBlock(
+                                stage: 3,
+                                child: _buildFooterSection(context, store),
+                              ),
                             ),
                           ),
                         ],

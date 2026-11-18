@@ -37,7 +37,7 @@ class _StorePageState extends State<StorePage>
   DateTime _lastScrollCheck = DateTime.now();
 
   late final AnimationController _themeCtrl;
-  bool _isExiting = false;
+  final _isExitingNotifier = ValueNotifier<bool>(false);
   bool _isSwitching = false;
 
   @override
@@ -50,6 +50,7 @@ class _StorePageState extends State<StorePage>
   @override
   void dispose() {
     _themeCtrl.dispose();
+    _isExitingNotifier.dispose();
     _scroll.dispose();
     _activeNotifier.dispose();
     super.dispose();
@@ -69,38 +70,39 @@ class _StorePageState extends State<StorePage>
     if (_isSwitching) return;
     _isSwitching = true;
 
-    // Fase 1: Halaman lama keluar (Scale 1.0 -> 0.95, Geser Kiri, Fade Out)
-    setState(() => _isExiting = true);
+    // Fase 1: Komponen halaman lama (Tombol Header -> Banner Hero -> Promo -> Katalog)
+    // menghilang perlahan secara berurutan (staggered) tanpa layar hitam
+    _isExitingNotifier.value = true;
     await _themeCtrl.animateBack(
       0.0,
-      duration: const Duration(milliseconds: 210),
-      curve: Curves.easeInCubic,
+      duration: const Duration(milliseconds: 340),
+      curve: Curves.linear,
     );
     if (!mounted) {
       _isSwitching = false;
       return;
     }
 
-    // Ganti tema saat layar bersih (opacity 0.0) agar tidak ada 2 halaman berat bersamaan
+    // Ganti tema ke desain baru
     context.read<StoreBloc>().add(StoreEvent.switchTheme(targetId));
     if (_scroll.hasClients) {
       _scroll.jumpTo(0);
     }
     _activeNotifier.value = NavSection.beranda;
 
-    // Tunggu 1 frame agar widget baru selesai di-mount & di-cache di RepaintBoundary
+    // Tunggu 1 frame agar komponen desain baru siap
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) {
       _isSwitching = false;
       return;
     }
 
-    // Fase 2: Halaman baru masuk menggantikan (Geser Masuk dari Kanan, Scale 0.96 -> 1.0, Fade In)
-    setState(() => _isExiting = false);
+    // Fase 2: Komponen desain baru muncul bergantian (Header -> Banner Hero -> Promo -> Katalog)
+    _isExitingNotifier.value = false;
     await _themeCtrl.animateTo(
       1.0,
-      duration: const Duration(milliseconds: 270),
-      curve: Curves.easeOutCubic,
+      duration: const Duration(milliseconds: 460),
+      curve: Curves.linear,
     );
     _isSwitching = false;
     if (!mounted) return;
@@ -191,14 +193,17 @@ class _StorePageState extends State<StorePage>
                     Column(
                       children: [
                         RepaintBoundary(
-                          child: ValueListenableBuilder<NavSection>(
-                            valueListenable: _activeNotifier,
-                            builder: (context, active, _) => _Header(
-                              active: active,
-                              onNav: scrollTo,
-                              onAdmin: _openAdmin,
-                              onMenu: () =>
-                                  _scaffoldKey.currentState?.openEndDrawer(),
+                          child: StaggeredThemeBlock(
+                            stage: 0,
+                            child: ValueListenableBuilder<NavSection>(
+                              valueListenable: _activeNotifier,
+                              builder: (context, active, _) => _Header(
+                                active: active,
+                                onNav: scrollTo,
+                                onAdmin: _openAdmin,
+                                onMenu: () =>
+                                    _scaffoldKey.currentState?.openEndDrawer(),
+                              ),
                             ),
                           ),
                         ),
@@ -221,30 +226,42 @@ class _StorePageState extends State<StorePage>
                                 ),
                                 SliverToBoxAdapter(
                                   child: RepaintBoundary(
-                                    child: PromoBanner(
-                                      onClaim: () =>
-                                          scrollTo(NavSection.katalog),
+                                    child: StaggeredThemeBlock(
+                                      stage: 2,
+                                      child: PromoBanner(
+                                        onClaim: () =>
+                                            scrollTo(NavSection.katalog),
+                                      ),
                                     ),
                                   ),
                                 ),
                                 SliverToBoxAdapter(
                                   child: RepaintBoundary(
-                                    child: CatalogSection(
-                                      key: _keys[NavSection.katalog],
+                                    child: StaggeredThemeBlock(
+                                      stage: 3,
+                                      child: CatalogSection(
+                                        key: _keys[NavSection.katalog],
+                                      ),
                                     ),
                                   ),
                                 ),
                                 SliverToBoxAdapter(
                                   child: RepaintBoundary(
-                                    child: LocationSection(
-                                      key: _keys[NavSection.lokasi],
-                                      qrKey: _keys[NavSection.qr]!,
+                                    child: StaggeredThemeBlock(
+                                      stage: 3,
+                                      child: LocationSection(
+                                        key: _keys[NavSection.lokasi],
+                                        qrKey: _keys[NavSection.qr]!,
+                                      ),
                                     ),
                                   ),
                                 ),
                                 SliverToBoxAdapter(
                                   child: RepaintBoundary(
-                                    child: StoreFooter(onNav: scrollTo),
+                                    child: StaggeredThemeBlock(
+                                      stage: 3,
+                                      child: StoreFooter(onNav: scrollTo),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -263,35 +280,18 @@ class _StorePageState extends State<StorePage>
                 ),
               );
 
-        return ColoredBox(
-          color: const Color(0xFF0B1220),
+        final bgSurface =
+            store.id == 'pet' ? const Color(0xFFECE7DF) : pal.surface;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 380),
+          color: bgSurface,
           child: Stack(
             children: [
-              AnimatedBuilder(
+              ThemeTransitionScope(
                 animation: _themeCtrl,
-                child: RepaintBoundary(
-                  key: ValueKey('store-boundary-${store.id}'),
-                  child: activeStoreView,
-                ),
-                builder: (context, child) {
-                  final t = _themeCtrl.value;
-                  if (t >= 0.999) return child!;
-                  final double scale =
-                      _isExiting ? (0.95 + 0.05 * t) : (0.96 + 0.04 * t);
-                  final Offset offset = _isExiting
-                      ? Offset(-0.05 * (1.0 - t), 0.012 * (1.0 - t))
-                      : Offset(0.05 * (1.0 - t), 0.012 * (1.0 - t));
-                  return Opacity(
-                    opacity: t.clamp(0.0, 1.0),
-                    child: FractionalTranslation(
-                      translation: offset,
-                      child: Transform.scale(
-                        scale: scale,
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
+                isExitingNotifier: _isExitingNotifier,
+                child: activeStoreView,
               ),
               if (AppConfig.isDemoShowcase)
                 DemoBar(

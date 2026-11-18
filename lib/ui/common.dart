@@ -45,13 +45,17 @@ class ContentWidth extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class Txt {
+  static final String? _serifFamily = GoogleFonts.newsreader().fontFamily;
+  static final String? _sansFamily = GoogleFonts.plusJakartaSans().fontFamily;
+
   static TextStyle serif(double size,
           {FontWeight weight = FontWeight.w400,
           Color? color,
           double? height,
           FontStyle? style,
           double spacing = 0}) =>
-      GoogleFonts.newsreader(
+      TextStyle(
+        fontFamily: _serifFamily,
         fontSize: size,
         fontWeight: weight,
         color: color,
@@ -66,7 +70,8 @@ class Txt {
           double? height,
           double spacing = 0,
           TextDecoration? decoration}) =>
-      GoogleFonts.plusJakartaSans(
+      TextStyle(
+        fontFamily: _sansFamily,
         fontSize: size,
         fontWeight: weight,
         color: color,
@@ -102,26 +107,27 @@ class Hover extends StatefulWidget {
 
 class _HoverState extends State<Hover> {
   bool _hover = false;
-  bool _down = false;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: widget.cursor ??
-          (widget.onTap != null ? SystemMouseCursors.click : MouseCursor.defer),
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        onTapDown: widget.onTap == null ? null : (_) => setState(() => _down = true),
-        onTapUp: widget.onTap == null ? null : (_) => setState(() => _down = false),
-        onTapCancel: widget.onTap == null ? null : () => setState(() => _down = false),
-        child: AnimatedScale(
-          scale: _down ? 0.97 : 1,
-          duration: const Duration(milliseconds: 120),
-          child: widget.builder(context, _hover),
-        ),
+    final child = widget.builder(context, _hover);
+    return RepaintBoundary(
+      child: MouseRegion(
+        cursor: widget.cursor ??
+            (widget.onTap != null ? SystemMouseCursors.click : MouseCursor.defer),
+        onEnter: (_) {
+          if (!_hover) setState(() => _hover = true);
+        },
+        onExit: (_) {
+          if (_hover) setState(() => _hover = false);
+        },
+        child: widget.onTap == null
+            ? child
+            : GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.onTap,
+                child: child,
+              ),
       ),
     );
   }
@@ -467,4 +473,108 @@ BoxDecoration cardDecoration(StorePalette pal, {double radius = 24, bool hovered
         ),
       ],
     );
+
+// ---------------------------------------------------------------------------
+// Staggered Component-by-Component Theme Transition (Zero Black Screen)
+// ---------------------------------------------------------------------------
+
+class ThemeTransitionScope extends InheritedWidget {
+  const ThemeTransitionScope({
+    super.key,
+    required this.animation,
+    required this.isExitingNotifier,
+    required super.child,
+  });
+
+  final Animation<double> animation;
+  final ValueNotifier<bool> isExitingNotifier;
+
+  static ThemeTransitionScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ThemeTransitionScope>();
+  }
+
+  @override
+  bool updateShouldNotify(ThemeTransitionScope oldWidget) =>
+      animation != oldWidget.animation ||
+      isExitingNotifier != oldWidget.isExitingNotifier;
+}
+
+/// Membungkus tiap bagian halaman (0: Header/Tombol, 1: Banner Hero, 2: Promo/Trust, 3: Katalog)
+/// agar menghilang perlahan secara berurutan (staggered) lalu digantikan oleh komponen desain baru.
+class StaggeredThemeBlock extends StatelessWidget {
+  const StaggeredThemeBlock({
+    super.key,
+    required this.stage,
+    required this.child,
+  });
+
+  /// 0 = Header & Tombol Atas, 1 = Banner Hero & Tombol Utama, 2 = Promo/Trust, 3 = Katalog
+  final int stage;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = ThemeTransitionScope.maybeOf(context);
+    if (scope == null) return child;
+
+    return AnimatedBuilder(
+      animation: Listenable.merge([scope.animation, scope.isExitingNotifier]),
+      child: child,
+      builder: (context, cachedChild) {
+        final val = scope.animation.value;
+        if (val >= 0.999) return cachedChild!;
+
+        final isExiting = scope.isExitingNotifier.value;
+        final s = stage.clamp(0, 3);
+
+        if (isExiting) {
+          // Saat keluar: progress berjalan dari 0.0 -> 1.0
+          final exitProgress = (1.0 - val).clamp(0.0, 1.0);
+          final start = s * 0.13; // 0.00, 0.13, 0.26, 0.39
+          final end = (0.55 + s * 0.15).clamp(0.0, 1.0); // 0.55, 0.70, 0.85, 1.00
+          final local = ((exitProgress - start) / (end - start)).clamp(0.0, 1.0);
+          final c = Curves.easeInCubic.transform(local);
+
+          final opacity = (1.0 - c).clamp(0.0, 1.0);
+          final dy = (s == 0 ? -16.0 : -24.0) * c;
+          final scale = 1.0 - (0.03 * c);
+
+          return Opacity(
+            opacity: opacity,
+            child: Transform.translate(
+              offset: Offset(0, dy),
+              child: Transform.scale(
+                scale: scale,
+                child: cachedChild,
+              ),
+            ),
+          );
+        } else {
+          // Saat desain baru masuk: progress berjalan dari 0.0 -> 1.0
+          final enterProgress = val.clamp(0.0, 1.0);
+          final start = s * 0.13; // 0.00, 0.13, 0.26, 0.39
+          final end = (0.52 + s * 0.16).clamp(0.0, 1.0); // 0.52, 0.68, 0.84, 1.00
+          final local = ((enterProgress - start) / (end - start)).clamp(0.0, 1.0);
+          final c = Curves.easeOutCubic.transform(local);
+
+          final opacity = c.clamp(0.0, 1.0);
+          final dy = (s == 0 ? -18.0 : 28.0) * (1.0 - c);
+          final scale = 0.965 + (0.035 * c);
+
+          return Opacity(
+            opacity: opacity,
+            child: Transform.translate(
+              offset: Offset(0, dy),
+              child: Transform.scale(
+                scale: scale,
+                child: cachedChild,
+              ),
+            ),
+          );
+        }
+      },
+    );
+  }
+}
+
 

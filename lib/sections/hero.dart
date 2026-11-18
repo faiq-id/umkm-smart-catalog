@@ -250,59 +250,79 @@ class _HeroSectionState extends State<HeroSection> {
                   padding: EdgeInsets.only(top: 24, bottom: mobile ? 36 : 48),
                   child: Column(
                     children: [
-                      Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        runSpacing: 10,
-                        spacing: 10,
-                        children: [
-                          Text.rich(
-                            TextSpan(children: [
-                              TextSpan(text: '${store.area.toUpperCase()}  /  '),
-                              TextSpan(
-                                  text: store.type.toUpperCase(),
-                                  style: TextStyle(
-                                      color: pal.secondary, fontWeight: FontWeight.w700)),
-                            ]),
-                            style: Txt.sans(11.5,
-                                weight: FontWeight.w600,
-                                color: pal.onSurfaceVariant,
-                                spacing: 1),
-                          ),
-                          statusBadge,
-                        ],
-                      ),
-                      const SizedBox(height: 22),
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(mobile ? 22 : 36),
-                        decoration: cardDecoration(pal, radius: 22),
-                        child: wide
-                            ? Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  emblem,
-                                  const SizedBox(width: 32),
-                                  Expanded(child: info),
-                                  if (MediaQuery.sizeOf(context).width >= 1200) ...[
-                                    const SizedBox(width: 24),
-                                    score,
-                                  ],
-                                ],
-                              )
-                            : Column(children: [emblem, const SizedBox(height: 22), info]),
+                      StaggeredThemeBlock(
+                        stage: 1,
+                        child: Column(
+                          children: [
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              runSpacing: 10,
+                              spacing: 10,
+                              children: [
+                                Text.rich(
+                                  TextSpan(children: [
+                                    TextSpan(
+                                        text: '${store.area.toUpperCase()}  /  '),
+                                    TextSpan(
+                                        text: store.type.toUpperCase(),
+                                        style: TextStyle(
+                                            color: pal.secondary,
+                                            fontWeight: FontWeight.w700)),
+                                  ]),
+                                  style: Txt.sans(11.5,
+                                      weight: FontWeight.w600,
+                                      color: pal.onSurfaceVariant,
+                                      spacing: 1),
+                                ),
+                                statusBadge,
+                              ],
+                            ),
+                            const SizedBox(height: 22),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(mobile ? 22 : 36),
+                              decoration: cardDecoration(pal, radius: 22),
+                              child: wide
+                                  ? Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        emblem,
+                                        const SizedBox(width: 32),
+                                        Expanded(child: info),
+                                        if (MediaQuery.sizeOf(context).width >=
+                                            1200) ...[
+                                          const SizedBox(width: 24),
+                                          score,
+                                        ],
+                                      ],
+                                    )
+                                  : Column(children: [
+                                      emblem,
+                                      const SizedBox(height: 22),
+                                      info
+                                    ]),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      LayoutBuilder(builder: (context, c) {
-                        final cols = c.maxWidth >= 640 ? 4 : 2;
-                        const gap = 12.0;
-                        final w = (c.maxWidth - gap * (cols - 1)) / cols;
-                        return Wrap(
-                          spacing: gap,
-                          runSpacing: gap,
-                          children: [for (final a in actions) SizedBox(width: w, child: a)],
-                        );
-                      }),
+                      StaggeredThemeBlock(
+                        stage: 2,
+                        child: LayoutBuilder(builder: (context, c) {
+                          final cols = c.maxWidth >= 640 ? 4 : 2;
+                          const gap = 12.0;
+                          final w = (c.maxWidth - gap * (cols - 1)) / cols;
+                          return Wrap(
+                            spacing: gap,
+                            runSpacing: gap,
+                            children: [
+                              for (final a in actions) SizedBox(width: w, child: a)
+                            ],
+                          );
+                        }),
+                      ),
                     ],
                   ),
                 ),
