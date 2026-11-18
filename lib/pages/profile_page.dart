@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../config/app_config.dart';
 import '../ui/common.dart';
+import 'admin_page.dart';
+import 'store_page.dart';
 
 // ===========================================================================
 // GRAIN & BUTTER ARTISAN DELI — COMPANY PROFILE (PURE PROFILE, NO ADMIN/CART)
@@ -260,177 +263,103 @@ class _ProfilePageState extends State<ProfilePage> {
               },
             )
           : null,
-      body: Column(
+      body: Stack(
         children: [
-          // Banner Switcher: Kembali ke Mode Toko / Katalog Demo
-          _DemoProfileSwitchBar(
-            onOpenStore: () => Navigator.of(context).pushReplacementNamed('/'),
-          ),
-
-          // Header sticky
-          _ProfileHeader(
-            onNav: _scrollTo,
-            onOpenMenuDrawer: () => _scaffoldKey.currentState?.openEndDrawer(),
-            keyHero: _keyHero,
-            keyFilosofi: _keyFilosofi,
-            keyMenu: _keyMenu,
-            keySuasana: _keySuasana,
-            keyTestimoni: _keyTestimoni,
-            keyLokasiReservasi: _keyLokasiReservasi,
-          ),
-
-          // Body scrollable
-          Expanded(
-            child: Scrollbar(
-              controller: _scrollController,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                physics: const ClampingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // SECTION 1: HERO
-                    _HeroSection(
-                      key: _keyHero,
-                      onExploreMenu: () => _scrollTo(_keyMenu),
-                      onReserveTable: () => _scrollTo(_keyLokasiReservasi),
-                    ),
-
-                    const SizedBox(height: 56),
-
-                    // SECTION 2: FILOSOFI & 4 PILAR
-                    _FilosofiSection(key: _keyFilosofi),
-
-                    const SizedBox(height: 72),
-
-                    // SECTION 3: MENU UNGGULAN & PROFIL CITA RASA (NON-CART)
-                    _MenuShowcaseSection(
-                      key: _keyMenu,
-                      activeCategory: _activeCategory,
-                      onCategoryChanged: (cat) => setState(() => _activeCategory = cat),
-                      onOpenDetail: _openDetailModal,
-                    ),
-
-                    const SizedBox(height: 72),
-
-                    // SECTION 4: SUASANA & ESTETIKA ATELIER (PHOTO MOSAIC)
-                    _SuasanaSection(key: _keySuasana),
-
-                    const SizedBox(height: 72),
-
-                    // SECTION 5: ULASAN PENGUNJUNG / TESTIMONI
-                    _TestimoniSection(key: _keyTestimoni),
-
-                    const SizedBox(height: 72),
-
-                    // SECTION 6: LOKASI & PANDUAN KUNJUNGAN ATELIER
-                    _LokasiReservasiSection(
-                      key: _keyLokasiReservasi,
-                      onOpenWhatsApp: _openWhatsAppConcierge,
-                    ),
-
-                    const SizedBox(height: 80),
-
-                    // FOOTER
-                    _ProfileFooter(
-                      onNav: _scrollTo,
-                      keyHero: _keyHero,
-                      keyFilosofi: _keyFilosofi,
-                      keyMenu: _keyMenu,
-                      keySuasana: _keySuasana,
-                      keyTestimoni: _keyTestimoni,
-                      keyLokasiReservasi: _keyLokasiReservasi,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 0. Top Bar Switcher (Mode Company Profile vs Toko Online)
-// ---------------------------------------------------------------------------
-
-class _DemoProfileSwitchBar extends StatelessWidget {
-  const _DemoProfileSwitchBar({required this.onOpenStore});
-  final VoidCallback onOpenStore;
-
-  @override
-  Widget build(BuildContext context) {
-    final mobile = Bp.mobile(context);
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFF1B120E),
-      padding: EdgeInsets.symmetric(horizontal: Bp.hPad(context), vertical: 8),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1280),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF291B16),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: const Color(0xFF4A342C)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+              // Header sticky
+              _ProfileHeader(
+                onNav: _scrollTo,
+                onOpenMenuDrawer: () => _scaffoldKey.currentState?.openEndDrawer(),
+                keyHero: _keyHero,
+                keyFilosofi: _keyFilosofi,
+                keyMenu: _keyMenu,
+                keySuasana: _keySuasana,
+                keyTestimoni: _keyTestimoni,
+                keyLokasiReservasi: _keyLokasiReservasi,
+              ),
+
+              // Body scrollable
+              Expanded(
+                child: Scrollbar(
+                  controller: _scrollController,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const ClampingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text('🏛️', style: TextStyle(fontSize: 12)),
-                        const SizedBox(width: 6),
-                        Text(
-                          mobile ? 'Company Profile' : 'Atelier Company Profile',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFFFFDDBA),
-                          ),
+                        // SECTION 1: HERO
+                        _HeroSection(
+                          key: _keyHero,
+                          onExploreMenu: () => _scrollTo(_keyMenu),
+                          onReserveTable: () => _scrollTo(_keyLokasiReservasi),
+                        ),
+
+                        const SizedBox(height: 56),
+
+                        // SECTION 2: FILOSOFI & 4 PILAR
+                        _FilosofiSection(key: _keyFilosofi),
+
+                        const SizedBox(height: 72),
+
+                        // SECTION 3: MENU UNGGULAN & PROFIL CITA RASA (NON-CART)
+                        _MenuShowcaseSection(
+                          key: _keyMenu,
+                          activeCategory: _activeCategory,
+                          onCategoryChanged: (cat) =>
+                              setState(() => _activeCategory = cat),
+                          onOpenDetail: _openDetailModal,
+                        ),
+
+                        const SizedBox(height: 72),
+
+                        // SECTION 4: SUASANA & ESTETIKA ATELIER (PHOTO MOSAIC)
+                        _SuasanaSection(key: _keySuasana),
+
+                        const SizedBox(height: 72),
+
+                        // SECTION 5: ULASAN PENGUNJUNG / TESTIMONI
+                        _TestimoniSection(key: _keyTestimoni),
+
+                        const SizedBox(height: 72),
+
+                        // SECTION 6: LOKASI & PANDUAN KUNJUNGAN ATELIER
+                        _LokasiReservasiSection(
+                          key: _keyLokasiReservasi,
+                          onOpenWhatsApp: _openWhatsAppConcierge,
+                        ),
+
+                        const SizedBox(height: 80),
+
+                        // FOOTER
+                        _ProfileFooter(
+                          onNav: _scrollTo,
+                          keyHero: _keyHero,
+                          keyFilosofi: _keyFilosofi,
+                          keyMenu: _keyMenu,
+                          keySuasana: _keySuasana,
+                          keyTestimoni: _keyTestimoni,
+                          keyLokasiReservasi: _keyLokasiReservasi,
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              Hover(
-                onTap: onOpenStore,
-                builder: (context, hovered) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: hovered ? _ProfileColors.secondary : const Color(0xFF412B23),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFF6B4232)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.storefront_rounded, size: 14, color: Colors.white),
-                      const SizedBox(width: 6),
-                      Text(
-                        mobile ? 'Mode Toko & Katalog' : 'Lihat Mode Toko Online & Pemesanan',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ),
             ],
           ),
-        ),
+          if (AppConfig.isDemoShowcase)
+            DemoBar(
+              isProfilePage: true,
+              onAdmin: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AdminPage()),
+                );
+              },
+              onSwitched: () {},
+            ),
+        ],
       ),
     );
   }

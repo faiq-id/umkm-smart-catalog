@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,6 +17,7 @@ import '../sections/promo.dart';
 import '../ui/common.dart';
 import '../widgets/cart_bar.dart';
 import 'admin_page.dart';
+import 'hampers_store_view.dart';
 
 enum NavSection { beranda, katalog, lokasi, qr }
 
@@ -97,6 +101,9 @@ class _StorePageState extends State<StorePage> {
     return BlocBuilder<StoreBloc, StoreState>(
       builder: (context, state) {
         final store = state.store;
+        if (store.id == 'pet') {
+          return HampersStoreView(onOpenAdmin: _openAdmin);
+        }
         final pal = store.palette;
 
         return Scaffold(
@@ -120,12 +127,6 @@ class _StorePageState extends State<StorePage> {
             children: [
               Column(
                 children: [
-                  if (AppConfig.isDemoShowcase)
-                    RepaintBoundary(
-                      child: DemoBar(
-                          onAdmin: _openAdmin,
-                          onSwitched: () => scrollTo(NavSection.beranda)),
-                    ),
                   RepaintBoundary(
                     child: ValueListenableBuilder<NavSection>(
                       valueListenable: _activeNotifier,
@@ -140,37 +141,44 @@ class _StorePageState extends State<StorePage> {
                   Expanded(
                     child: Scrollbar(
                       controller: _scroll,
-                      child: SingleChildScrollView(
+                      child: CustomScrollView(
+                        key: ValueKey(store.id),
                         controller: _scroll,
                         physics: const ClampingScrollPhysics(),
-                        child: Column(
-                          key: ValueKey(store.id),
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            RepaintBoundary(
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: RepaintBoundary(
                               child: HeroSection(
                                 key: _keys[NavSection.beranda],
                                 onDirections: () => scrollTo(NavSection.lokasi),
                               ),
                             ),
-                            RepaintBoundary(
+                          ),
+                          SliverToBoxAdapter(
+                            child: RepaintBoundary(
                               child: PromoBanner(
                                   onClaim: () => scrollTo(NavSection.katalog)),
                             ),
-                            RepaintBoundary(
+                          ),
+                          SliverToBoxAdapter(
+                            child: RepaintBoundary(
                               child: CatalogSection(key: _keys[NavSection.katalog]),
                             ),
-                            RepaintBoundary(
+                          ),
+                          SliverToBoxAdapter(
+                            child: RepaintBoundary(
                               child: LocationSection(
                                 key: _keys[NavSection.lokasi],
                                 qrKey: _keys[NavSection.qr]!,
                               ),
                             ),
-                            RepaintBoundary(
+                          ),
+                          SliverToBoxAdapter(
+                            child: RepaintBoundary(
                               child: StoreFooter(onNav: scrollTo),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -182,6 +190,11 @@ class _StorePageState extends State<StorePage> {
                 bottom: 0,
                 child: RepaintBoundary(child: FloatingCartBar()),
               ),
+              if (AppConfig.isDemoShowcase)
+                DemoBar(
+                  onAdmin: _openAdmin,
+                  onSwitched: () => scrollTo(NavSection.beranda),
+                ),
             ],
           ),
         );
@@ -191,134 +204,682 @@ class _StorePageState extends State<StorePage> {
 }
 
 // ---------------------------------------------------------------------------
-// 0. Demo bar (sticky paling atas)
+// 0. Smart Side-Tab + Portfolio Demo Switcher Sidebar
 // ---------------------------------------------------------------------------
 
-class DemoBar extends StatelessWidget {
-  const DemoBar({super.key, required this.onAdmin, required this.onSwitched});
+class DemoBar extends StatefulWidget {
+  const DemoBar({
+    super.key,
+    required this.onAdmin,
+    required this.onSwitched,
+    this.isProfilePage = false,
+  });
+
   final VoidCallback onAdmin;
   final VoidCallback onSwitched;
+  final bool isProfilePage;
+
+  @override
+  State<DemoBar> createState() => _DemoBarState();
+}
+
+class _DemoBarState extends State<DemoBar> {
+  static bool _hasShownInitialHint = false;
+
+  bool _isOpen = false;
+  bool _showHint = false;
+  Timer? _hintTimer;
+
+  static const _kObsidian = Color(0xFF0B1220);
+  static const _kObsidianLight = Color(0xFF141E30);
+  static const _kCardSlate = Color(0xFF1E2636);
+  static const _kGold = Color(0xFFE3BE80);
+  static const _kGoldDark = Color(0xFF926E3E);
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_hasShownInitialHint) {
+      _hasShownInitialHint = true;
+      _hintTimer = Timer(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        setState(() => _showHint = true);
+        _hintTimer = Timer(const Duration(seconds: 7), () {
+          if (!mounted) return;
+          setState(() => _showHint = false);
+        });
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _hintTimer?.cancel();
+    super.dispose();
+  }
+
+  void _openSidebar() {
+    _hintTimer?.cancel();
+    setState(() {
+      _showHint = false;
+      _isOpen = true;
+    });
+  }
+
+  void _closeSidebar() {
+    setState(() => _isOpen = false);
+  }
+
+  (IconData, String, String) _storeMeta(StoreProfile s) {
+    switch (s.id) {
+      case 'pet':
+        return (
+          Icons.card_giftcard_rounded,
+          'Hampers Korporat B2B',
+          'Maison Cadeaux',
+        );
+      case 'bakery':
+        return (
+          Icons.bakery_dining_rounded,
+          'Artisan Bakery & Pastry',
+          'Grain & Batter',
+        );
+      case 'coffee':
+      default:
+        return (
+          Icons.coffee_rounded,
+          'Specialty Coffee Shop',
+          'Kopi Senja',
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<StoreBloc>().state;
-    final pal = state.store.palette;
-    final mobile = Bp.mobile(context);
-    const bg = Color(0xFF1B120E);
+    final screenW = MediaQuery.sizeOf(context).width;
+    final mobile = screenW < 640;
+    final drawerWidth = mobile ? math.min(320.0, screenW * 0.86) : 365.0;
 
-    final switcher = Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: const Color(0xFF291B16),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFF4A342C)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final s in state.allStores)
-            Hover(
-              onTap: () {
-                context.read<StoreBloc>().add(StoreEvent.switchTheme(s.id));
-                onSwitched();
-                showToast(context, 'Beralih ke ${s.themeLabel} ${s.emoji}',
-                    icon: Icons.palette_outlined);
-              },
-              builder: (context, h) {
-                final active = s.id == state.currentStoreId;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: active
-                        ? const Color(0xFF412B23)
-                        : (h ? const Color(0xFF33231D) : Colors.transparent),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(s.emoji, style: const TextStyle(fontSize: 12)),
-                      const SizedBox(width: 5),
-                      Text(
-                        mobile
-                            ? s.shortThemeLabel
-                            : '${s.themeLabel}${active ? ' (Aktif)' : ''}',
-                        style: Txt.sans(11.5,
-                            weight: active ? FontWeight.w700 : FontWeight.w500,
-                            color: active || h ? Colors.white : const Color(0xFFC9B7B0)),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-        ],
-      ),
-    );
-
-    final profileBtn = Hover(
-      onTap: () => Navigator.of(context).pushNamed('/profile'),
-      builder: (context, hovered) => AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: hovered ? pal.secondary : const Color(0xFF3B2720),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: const Color(0xFF6B4232)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.auto_stories_outlined, size: 13, color: Color(0xFFFFDDBA)),
-            const SizedBox(width: 5),
-            Text(
-              mobile ? 'Company Profile' : '🏛️ Web Company Profile',
-              style: Txt.sans(
-                11,
-                weight: FontWeight.w600,
-                color: const Color(0xFFFFDDBA),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    return Container(
-      width: double.infinity,
-      color: bg,
-      padding: EdgeInsets.symmetric(horizontal: Bp.hPad(context), vertical: 7),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1280),
-          child: mobile
-              ? SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      switcher,
-                      const SizedBox(width: 8),
-                      profileBtn,
-                    ],
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: switcher,
+    return Stack(
+      children: [
+        // 1. Right-Edge Smart Side-Tab + Floating Callout Tooltip
+        Positioned(
+          right: 0,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Auto-Hint Callout Bubble
+                IgnorePointer(
+                  ignoring: !_showHint || _isOpen,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 280),
+                    opacity: (_showHint && !_isOpen) ? 1.0 : 0.0,
+                    child: AnimatedSlide(
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeOutCubic,
+                      offset: (_showHint && !_isOpen)
+                          ? Offset.zero
+                          : const Offset(0.08, 0),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: GestureDetector(
+                          onTap: _openSidebar,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            alignment: Alignment.centerRight,
+                            children: [
+                              Container(
+                                constraints: BoxConstraints(
+                                  maxWidth: mobile ? 205 : 245,
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: mobile ? 12 : 16,
+                                  vertical: mobile ? 10 : 13,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _kObsidian.withValues(alpha: 0.96),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _kGold.withValues(alpha: 0.8),
+                                    width: 1.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.48),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                    BoxShadow(
+                                      color: _kGold.withValues(alpha: 0.16),
+                                      blurRadius: 16,
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 2),
+                                      child: Icon(
+                                        Icons.auto_awesome_rounded,
+                                        size: 15,
+                                        color: _kGold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        'Coba ganti Tema Toko,\nCompany Profile & Panel Admin di sini',
+                                        style: Txt.sans(
+                                          mobile ? 11 : 12,
+                                          weight: FontWeight.w600,
+                                          color: Colors.white,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    InkWell(
+                                      onTap: () {
+                                        _hintTimer?.cancel();
+                                        setState(() => _showHint = false);
+                                      },
+                                      child: Icon(
+                                        Icons.close_rounded,
+                                        size: 14,
+                                        color: Colors.white.withValues(alpha: 0.6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Right-pointing arrow pointer
+                              Positioned(
+                                right: -5,
+                                child: Transform.rotate(
+                                  angle: math.pi / 4,
+                                  child: Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: _kObsidian,
+                                      border: Border(
+                                        top: BorderSide(
+                                          color: _kGold.withValues(alpha: 0.8),
+                                          width: 1.2,
+                                        ),
+                                        right: BorderSide(
+                                          color: _kGold.withValues(alpha: 0.8),
+                                          width: 1.2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    profileBtn,
+                  ),
+                ),
+
+                // Docked Vertical Capsule Tab Trigger
+                Hover(
+                  onTap: _openSidebar,
+                  builder: (context, hovered) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: mobile ? 8 : 10,
+                      vertical: mobile ? 14 : 18,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: hovered
+                            ? [const Color(0xFF1A263D), _kObsidian]
+                            : [_kObsidianLight, _kObsidian],
+                      ),
+                      borderRadius: const BorderRadius.horizontal(
+                        left: Radius.circular(18),
+                      ),
+                      border: Border(
+                        top: BorderSide(
+                          color: _kGold.withValues(alpha: hovered ? 0.95 : 0.72),
+                          width: 1.3,
+                        ),
+                        left: BorderSide(
+                          color: _kGold.withValues(alpha: hovered ? 0.95 : 0.72),
+                          width: 1.3,
+                        ),
+                        bottom: BorderSide(
+                          color: _kGold.withValues(alpha: hovered ? 0.95 : 0.72),
+                          width: 1.3,
+                        ),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          blurRadius: 18,
+                          offset: const Offset(-4, 4),
+                        ),
+                        if (hovered)
+                          BoxShadow(
+                            color: _kGold.withValues(alpha: 0.25),
+                            blurRadius: 14,
+                          ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.arrow_left_rounded,
+                          size: 18,
+                          color: _kGold,
+                        ),
+                        const SizedBox(height: 4),
+                        RotatedBox(
+                          quarterTurns: 3,
+                          child: Text(
+                            mobile ? 'Pilih Demo & Admin' : 'Pilih Demo & Admin',
+                            style: Txt.sans(
+                              mobile ? 11 : 12,
+                              weight: FontWeight.w700,
+                              color: Colors.white,
+                              spacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Icon(
+                          Icons.palette_outlined,
+                          size: 16,
+                          color: _kGold,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // 2. Backdrop Scrim when Sidebar is Open
+        IgnorePointer(
+          ignoring: !_isOpen,
+          child: GestureDetector(
+            onTap: _closeSidebar,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 260),
+              opacity: _isOpen ? 1.0 : 0.0,
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.55),
+              ),
+            ),
+          ),
+        ),
+
+        // 3. Slide-Over Luxury Sidebar ("PORTFOLIO DEMO SWITCHER")
+        Align(
+          alignment: Alignment.centerRight,
+          child: IgnorePointer(
+            ignoring: !_isOpen,
+            child: AnimatedSlide(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              offset: _isOpen ? Offset.zero : const Offset(1.05, 0),
+              child: Container(
+                width: drawerWidth,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  color: _kObsidian,
+                  border: Border(
+                    left: BorderSide(
+                      color: _kGold.withValues(alpha: 0.55),
+                      width: 1.2,
+                    ),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      blurRadius: 32,
+                      offset: const Offset(-10, 0),
+                    ),
                   ],
                 ),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Sidebar Header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 18, 12, 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'PORTFOLIO DEMO SWITCHER',
+                                style: Txt.sans(
+                                  12,
+                                  weight: FontWeight.w700,
+                                  color: _kGold,
+                                  spacing: 1.4,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: _closeSidebar,
+                              icon: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white70,
+                                size: 22,
+                              ),
+                              tooltip: 'Tutup',
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: 1,
+                        color: _kGold.withValues(alpha: 0.25),
+                      ),
+
+                      // Sidebar Content
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(22, 22, 22, 28),
+                          children: [
+                            Text(
+                              'PILIH TEMA KATALOG (3 INDUSTRI)',
+                              style: Txt.sans(
+                                11,
+                                weight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.68),
+                                spacing: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            for (final s in state.allStores) ...[
+                              Builder(
+                                builder: (context) {
+                                  final active = !widget.isProfilePage &&
+                                      s.id == state.currentStoreId;
+                                  final (icon, title, brand) = _storeMeta(s);
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: Hover(
+                                      onTap: () {
+                                        _closeSidebar();
+                                        context
+                                            .read<StoreBloc>()
+                                            .add(StoreEvent.switchTheme(s.id));
+                                        if (widget.isProfilePage) {
+                                          Navigator.of(context)
+                                              .pushReplacementNamed('/');
+                                        } else {
+                                          widget.onSwitched();
+                                        }
+                                        showToast(
+                                          context,
+                                          'Beralih ke $title ($brand)',
+                                          icon: icon,
+                                        );
+                                      },
+                                      builder: (context, hovered) =>
+                                          AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 15,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          gradient: active
+                                              ? const LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Color(0xFF3E3122),
+                                                    Color(0xFF282018),
+                                                  ],
+                                                )
+                                              : null,
+                                          color: active
+                                              ? null
+                                              : (hovered
+                                                  ? const Color(0xFF263044)
+                                                  : _kCardSlate),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: active
+                                                ? _kGold
+                                                : (hovered
+                                                    ? _kGold
+                                                        .withValues(alpha: 0.5)
+                                                    : Colors.white.withValues(
+                                                        alpha: 0.12)),
+                                            width: active ? 1.4 : 1.0,
+                                          ),
+                                          boxShadow: active
+                                              ? [
+                                                  BoxShadow(
+                                                    color: _kGoldDark
+                                                        .withValues(alpha: 0.25),
+                                                    blurRadius: 12,
+                                                    offset: const Offset(0, 4),
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              icon,
+                                              size: 24,
+                                              color: _kGold,
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    title,
+                                                    style: Txt.sans(
+                                                      13.5,
+                                                      weight: FontWeight.w700,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  RichText(
+                                                    text: TextSpan(
+                                                      style: Txt.sans(
+                                                        12,
+                                                        color: Colors.white
+                                                            .withValues(
+                                                                alpha: 0.72),
+                                                      ),
+                                                      children: [
+                                                        TextSpan(
+                                                            text: '— $brand'),
+                                                        if (active)
+                                                          TextSpan(
+                                                            text: ' (Aktif)',
+                                                            style: Txt.sans(
+                                                              12,
+                                                              weight:
+                                                                  FontWeight.w700,
+                                                              color: _kGold,
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+
+                            const SizedBox(height: 18),
+                            Text(
+                              'FITUR & HALAMAN SISTEM',
+                              style: Txt.sans(
+                                11,
+                                weight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.68),
+                                spacing: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Button 1: Lihat Web Company Profile
+                            Hover(
+                              onTap: () {
+                                _closeSidebar();
+                                if (!widget.isProfilePage) {
+                                  Navigator.of(context).pushNamed('/profile');
+                                }
+                              },
+                              builder: (context, hovered) => AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: widget.isProfilePage
+                                      ? const Color(0xFF33281C)
+                                      : (hovered
+                                          ? _kGold.withValues(alpha: 0.14)
+                                          : Colors.white
+                                              .withValues(alpha: 0.04)),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: _kGold.withValues(
+                                      alpha: widget.isProfilePage || hovered
+                                          ? 0.9
+                                          : 0.5,
+                                    ),
+                                    width: 1.1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.domain_rounded,
+                                      size: 20,
+                                      color: _kGold,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        widget.isProfilePage
+                                            ? 'Web Company Profile (Aktif)'
+                                            : 'Lihat Web Company Profile',
+                                        style: Txt.sans(
+                                          13,
+                                          weight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      size: 18,
+                                      color: _kGold.withValues(alpha: 0.8),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            // Button 2: Buka Panel Admin (CMS)
+                            Hover(
+                              onTap: () {
+                                _closeSidebar();
+                                widget.onAdmin();
+                              },
+                              builder: (context, hovered) => AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: hovered
+                                      ? _kGold.withValues(alpha: 0.16)
+                                      : Colors.white.withValues(alpha: 0.04),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: _kGold.withValues(
+                                      alpha: hovered ? 0.95 : 0.55,
+                                    ),
+                                    width: 1.1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.settings_suggest_rounded,
+                                      size: 20,
+                                      color: _kGold,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Buka Panel Admin (CMS)',
+                                        style: Txt.sans(
+                                          13,
+                                          weight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      size: 18,
+                                      color: _kGold.withValues(alpha: 0.8),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -478,53 +1039,54 @@ class _Header extends StatelessWidget {
                   fg: Colors.white,
                   shadow: true,
                 ),
-                const SizedBox(width: 10),
+                if (!AppConfig.isDemoShowcase) const SizedBox(width: 10),
               ],
 
-              // Admin Demo Button
-              Hover(
-                onTap: onAdmin,
-                builder: (context, h) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isUltraCompactAdmin
-                        ? 8
-                        : (isCompactAdmin ? 10 : 14),
-                    vertical: isUltraCompactAdmin ? 6 : 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: h
-                        ? pal.secondary.withValues(alpha: 0.16)
-                        : pal.secondary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: pal.secondary.withValues(alpha: h ? 0.8 : 0.45),
-                      width: 1.2,
+              // Admin Demo Button (Hanya tampil jika DemoBar di atas tidak aktif agar tidak ganda)
+              if (!AppConfig.isDemoShowcase)
+                Hover(
+                  onTap: onAdmin,
+                  builder: (context, h) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isUltraCompactAdmin
+                          ? 8
+                          : (isCompactAdmin ? 10 : 14),
+                      vertical: isUltraCompactAdmin ? 6 : 7,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.admin_panel_settings_rounded,
-                        size: isUltraCompactAdmin ? 14 : 16,
-                        color: pal.secondary,
+                    decoration: BoxDecoration(
+                      color: h
+                          ? pal.secondary.withValues(alpha: 0.16)
+                          : pal.secondary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: pal.secondary.withValues(alpha: h ? 0.8 : 0.45),
+                        width: 1.2,
                       ),
-                      const SizedBox(width: 5),
-                      Text(
-                        isUltraCompactAdmin
-                            ? 'Admin'
-                            : (isCompactAdmin ? 'Admin' : 'Panel Admin'),
-                        style: Txt.sans(
-                          isUltraCompactAdmin ? 11 : 12,
-                          weight: FontWeight.w700,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.admin_panel_settings_rounded,
+                          size: isUltraCompactAdmin ? 14 : 16,
                           color: pal.secondary,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 5),
+                        Text(
+                          isUltraCompactAdmin
+                              ? 'Admin'
+                              : (isCompactAdmin ? 'Admin' : 'Panel Admin'),
+                          style: Txt.sans(
+                            isUltraCompactAdmin ? 11 : 12,
+                            weight: FontWeight.w700,
+                            color: pal.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
               // Mobile / Tablet Drawer Menu Hamburger Button
               if (!showNav) ...[
@@ -606,16 +1168,6 @@ class _MobileDrawer extends StatelessWidget {
                 fg: pal.primary,
                 expand: true,
                 padding: const EdgeInsets.symmetric(vertical: 13),
-              ),
-              const SizedBox(height: 10),
-              PillButton(
-                label: 'Buka Dashboard Admin',
-                icon: Icons.dashboard_customize_outlined,
-                onTap: onAdmin,
-                bg: pal.primary,
-                fg: Colors.white,
-                expand: true,
-                padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ],
           ),

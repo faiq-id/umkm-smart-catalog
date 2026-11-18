@@ -531,8 +531,8 @@ class _HampersStoreViewState extends State<HampersStoreView> {
     showToast(
       context,
       next == HamperSeason.eid
-          ? 'Beralih ke Koleksi Hampers Idul Fitri 1448 H / Lebaran 🌙'
-          : 'Beralih ke Koleksi Hampers Tahun Baru 2027 ✨',
+          ? 'Beralih ke Koleksi Hampers Idul Fitri 1448 H / Lebaran'
+          : 'Beralih ke Koleksi Hampers Tahun Baru 2027',
       icon: next == HamperSeason.eid
           ? Icons.nights_stay_rounded
           : Icons.auto_awesome_rounded,
@@ -549,10 +549,15 @@ class _HampersStoreViewState extends State<HampersStoreView> {
 
     Widget buildOption({
       required HamperSeason target,
-      required String emoji,
+      required IconData icon,
       required String label,
     }) {
       final active = _season == target;
+      final fgColor = active
+          ? _kPrimaryDark
+          : (onDark
+              ? Colors.white.withValues(alpha: 0.85)
+              : _kCardTextMuted);
       return InkWell(
         onTap: () => _setSeason(target),
         borderRadius: BorderRadius.circular(999),
@@ -582,18 +587,18 @@ class _HampersStoreViewState extends State<HampersStoreView> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: TextStyle(fontSize: compact ? 11.5 : 12.5)),
+              Icon(
+                icon,
+                size: compact ? 13 : 14,
+                color: active ? _kPrimaryDark : _kTertiaryFixed,
+              ),
               const SizedBox(width: 5),
               Text(
                 label,
                 style: _jakarta(
                   compact ? 11 : 11.5,
                   weight: active ? FontWeight.w700 : FontWeight.w600,
-                  color: active
-                      ? _kPrimaryDark
-                      : (onDark
-                          ? Colors.white.withValues(alpha: 0.85)
-                          : _kCardTextMuted),
+                  color: fgColor,
                 ),
               ),
             ],
@@ -614,13 +619,13 @@ class _HampersStoreViewState extends State<HampersStoreView> {
         children: [
           buildOption(
             target: HamperSeason.newYear,
-            emoji: '✨',
+            icon: Icons.auto_awesome_rounded,
             label: compact ? 'Tahun Baru' : 'Edisi Tahun Baru',
           ),
           const SizedBox(width: 3),
           buildOption(
             target: HamperSeason.eid,
-            emoji: '🌙',
+            icon: Icons.nights_stay_rounded,
             label: compact ? 'Idul Fitri' : 'Edisi Idul Fitri',
           ),
         ],
@@ -1095,13 +1100,6 @@ class _HampersStoreViewState extends State<HampersStoreView> {
             children: [
               Column(
                 children: [
-                  if (AppConfig.isDemoShowcase)
-                    RepaintBoundary(
-                      child: DemoBar(
-                        onAdmin: widget.onOpenAdmin,
-                        onSwitched: _scrollToTop,
-                      ),
-                    ),
                   RepaintBoundary(
                     child: _buildTopHeader(context, store),
                   ),
@@ -1166,6 +1164,11 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                 bottom: 0,
                 child: RepaintBoundary(child: FloatingCartBar()),
               ),
+              if (AppConfig.isDemoShowcase)
+                DemoBar(
+                  onAdmin: widget.onOpenAdmin,
+                  onSwitched: _scrollToTop,
+                ),
             ],
           ),
         );
@@ -1558,9 +1561,12 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                             (diff.inSeconds % 60).toString().padLeft(2, '0');
 
                         final timerWidgets = <Widget>[
-                          Text(
-                            _isEid ? '🌙' : '✨',
-                            style: const TextStyle(fontSize: 13),
+                          Icon(
+                            _isEid
+                                ? Icons.nights_stay_rounded
+                                : Icons.auto_awesome_rounded,
+                            size: 14,
+                            color: _kTertiaryFixed,
                           ),
                           const SizedBox(width: 6),
                           RichText(
@@ -2016,7 +2022,7 @@ class _HampersStoreViewState extends State<HampersStoreView> {
               Flexible(
                 child: Text(
                   _isEid
-                      ? '🌙  KOLEKSI RAYA IDUL FITRI 1448 H / 2027  ✦'
+                      ? '✦  KOLEKSI RAYA IDUL FITRI 1448 H / 2027  ✦'
                       : '✦  KOLEKSI TAHUN BARU 2027  ✦',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -2931,7 +2937,7 @@ class _HampersStoreViewState extends State<HampersStoreView> {
                                   Flexible(
                                     child: Text(
                                       _isEid
-                                          ? '🌙  KOLEKSI HAMPERS & PAKET RAYA IDUL FITRI 1448 H  ✦'
+                                          ? '✦  KOLEKSI HAMPERS & PAKET RAYA IDUL FITRI 1448 H  ✦'
                                           : '✦  KOLEKSI EKSKLUSIF TAHUN BARU 2027  ✦',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
